@@ -1,0 +1,13 @@
+﻿{
+  "handshake": "<?xml version='1.0' encoding='UTF-8'?><stream:stream to='jabber.ru' xmlns='jabber:client' xmlns:stream='http://etherx.jabber.org/streams' xml:l='ru' version='1.0'>",
+  "digest_auth": "<auth xmlns='urn:ietf:params:xml:ns:xmpp-sasl' mechanism='DIGEST-MD5'/>",
+  "base_request": "<response xmlns='urn:ietf:params:xml:ns:xmpp-sasl'>%DATA%</response>",
+  "sasl_on": "<response xmlns='urn:ietf:params:xml:ns:xmpp-sasl'/>",
+  "bind": "<iq type='set' id='bund_2'><bind xmlns='urn:ietf:params:xml:ns:xmpp-bind'><resource></resource></bind></iq>",
+  "presense": {
+    "show": "<presence><show></show></presence>"
+  },
+  "message": {
+    "chat": "<message type='chat' to='katepleh@jabber.ru' id='id' from='andrewprok@jabber.ru'><body>%MESSAGE%</body></message>"
+  }
+}

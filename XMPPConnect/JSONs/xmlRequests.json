@@ -4,10 +4,10 @@
   "base_request": "<response xmlns='urn:ietf:params:xml:ns:xmpp-sasl'>%DATA%</response>",
   "sasl_on": "<response xmlns='urn:ietf:params:xml:ns:xmpp-sasl'/>",
   "bind": "<iq type='set' id='bund_2'><bind xmlns='urn:ietf:params:xml:ns:xmpp-bind'><resource></resource></bind></iq>",
-  "presense": {
+  "e": {
     "show": "<presence><show></show></presence>"
   },
   "message": {
-    "chat": "<message type='chat' to='katepleh@jabber.ru' id='id' from='andrewprok@jabber.ru'><body>%MESSAGE%</body></message>"
+    "chat": "<message type='chat' to='%TO%' id='id' from='%FROM%'><body>%DATA%</body></message>"
   }
 }

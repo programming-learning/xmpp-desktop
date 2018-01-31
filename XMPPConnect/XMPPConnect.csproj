@@ -103,27 +103,39 @@
   <ItemGroup>
     <Compile Include="AbstractClasses\XmppConnection.cs" />
     <Compile Include="ErrorHandler.cs" />
+    <Compile Include="Helpers\CryptographyHelper.cs" />
+    <Compile Include="Helpers\StreamReaderExtensionMethods.cs" />
     <Compile Include="Helpers\HexEncoding.cs" />
-    <Compile Include="Interfaces\IJabberId.cs" />
-    <Compile Include="Interfaces\IStanza.cs" />
+    <Compile Include="Helpers\SimpleJSON.cs" />
     <Compile Include="Interfaces\IXmlPackageCreator.cs" />
     <Compile Include="Interfaces\IXmlPackageManager.cs" />
-    <Compile Include="Interfaces\IXmppClientConnection.cs" />
+    <Compile Include="Interfaces\IXmppConnection.cs" />
+    <Compile Include="IqGrabber.cs" />
+    <Compile Include="JabberID.cs" />
     <Compile Include="MainClasses\SentItem.cs" />
     <Compile Include="MainClasses\XmlPackageTemplate.cs" />
     <Compile Include="MainClasses\XmppClientConnection.cs" />
     <Compile Include="Managers\XmlPackageCreator.cs" />
+    <Compile Include="Message.cs" />
+    <Compile Include="MessageCallback.cs" />
+    <Compile Include="MessageGrabber.cs" />
+    <Compile Include="MessageHandler.cs" />
     <Compile Include="Net\ClientSocket.cs" />
     <Compile Include="Net\ISocket.cs" />
     <Compile Include="ObjectHandler.cs" />
     <Compile Include="OnSocketDataHandler.cs" />
+    <Compile Include="PacketGrabber.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Managers\XmlPackageManager.cs" />
+    <Compile Include="Stanza.cs" />
+    <Compile Include="StanzaManager.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />
-    <None Include="JSONs\xmlRequests.json" />
+    <EmbeddedResource Include="JSONs\xmlRequests.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </EmbeddedResource>
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>

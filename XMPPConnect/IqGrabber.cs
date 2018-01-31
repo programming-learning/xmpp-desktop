@@ -4,9 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace XMPPConnect.Interfaces
+namespace XMPPConnect
 {
-    public interface IStanza
+    public class IqGrabber
     {
     }
 }

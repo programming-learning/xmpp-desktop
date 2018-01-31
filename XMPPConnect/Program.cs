@@ -20,7 +20,7 @@ namespace XMPPConnect
         {
             XmlDocument xmlDoc = new XmlDocument();
 
-            HereJabber("andrewprok@jabber.ru", "198nachto51");
+            HereJabber("andrewprok@jabber.ru", "newbie52");
 
             Console.ReadLine();
         }

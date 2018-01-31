@@ -22,7 +22,6 @@ namespace XMPPConnect.Net
         private bool _pendingSend;
         private byte[] _readBuffer;
         private Queue _sendQueue;
-        private NetworkStream _stream;
         private int _port;
         private string _address;
 
@@ -109,9 +108,7 @@ namespace XMPPConnect.Net
                 {
                     _connectTimeoutTimer.Dispose();
                     _socket.EndConnect(ar);
-                    //_stream = new NetworkStream(_socket, false);
-                    //InvokeOnConnect(this);
-                    //Receive();
+                    InvokeOnConnect();
                 }
                 catch (Exception ex)
                 {

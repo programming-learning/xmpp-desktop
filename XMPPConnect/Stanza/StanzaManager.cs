@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.Language.Xml;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -8,13 +9,11 @@ namespace XMPPConnect
 {
     public class StanzaManager
     {
-        private readonly string _dataPath; 
         private Stanza _stanza;
         
         public StanzaManager(StanzaType type)
         {
-            _dataPath = "JSONs\\xmlRequests.json";
-            _stanza = new Stanza(_dataPath);
+            _stanza = new Stanza(type);
         }
 
         //public string GetHandshakeXML()
@@ -45,7 +44,6 @@ namespace XMPPConnect
         public string GetXML(StanzaType type, string data = null, string to = null, string from = null)
         {
             string resultXML = string.Empty;
-            _stanza.SetType(type);
             return _stanza.ToString().Replace(Stanza.DataTemplate, data).
                 Replace(Stanza.TagToTemplate, to).
                 Replace(Stanza.TagFromTemplate, from);
@@ -64,10 +62,25 @@ namespace XMPPConnect
             //}
         }
 
-        public string ParseChallenge(string xml)
+        public static string ParseChallenge(string xml)
         {
-            string ch = string.Empty;
-            return ch;
+            XmlDocumentSyntax root = Parser.ParseText(xml);
+
+            string base64Info = string.Empty;
+            foreach (IXmlElement node in root.Elements)
+            {
+                Console.WriteLine(node.Name);
+                Console.WriteLine(node.Value);
+                if (node.Name == "challenge")
+                {
+                    base64Info = node.Value;
+                }
+            }
+
+            byte[] uniqDataB = new byte[1024];
+            uniqDataB = Convert.FromBase64String(base64Info);
+
+            return Encoding.Default.GetString(uniqDataB);
         }
     }
 }

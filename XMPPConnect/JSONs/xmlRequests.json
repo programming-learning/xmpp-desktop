@@ -1,11 +1,13 @@
 ﻿{
-  "handshake": "<?xml version='1.0' encoding='UTF-8'?><stream:stream to='jabber.ru' xmlns='jabber:client' xmlns:stream='http://etherx.jabber.org/streams' xml:l='ru' version='1.0'>",
+  "header": "<?xml version='1.0' encoding='UTF-8'?><stream:stream to='jabber.ru' xmlns='jabber:client' xmlns:stream='http://etherx.jabber.org/streams' xml:l='ru' version='1.0'>",
   "digest_auth": "<auth xmlns='urn:ietf:params:xml:ns:xmpp-sasl' mechanism='DIGEST-MD5'/>",
   "base_request": "<response xmlns='urn:ietf:params:xml:ns:xmpp-sasl'>%DATA%</response>",
   "sasl_on": "<response xmlns='urn:ietf:params:xml:ns:xmpp-sasl'/>",
   "bind": "<iq type='set' id='bund_2'><bind xmlns='urn:ietf:params:xml:ns:xmpp-bind'><resource></resource></bind></iq>",
-  "e": {
-    "show": "<presence><show></show></presence>"
+  "presence": {
+    "default": "<presence><show></show></presence>",
+    "chat": "<presence><show>chat</show></presence>",
+    "away": "<presence><show>away</show></presence>"
   },
   "message": {
     "chat": "<message type='chat' to='%TO%' id='id' from='%FROM%'><body>%DATA%</body></message>"

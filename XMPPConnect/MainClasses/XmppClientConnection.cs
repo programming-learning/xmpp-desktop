@@ -51,7 +51,7 @@ namespace XMPPConnect.MainClasses
             try
             {
                 _clientSocket.Connect(Server, Port);
-                string handshake = _stanzaManager.GetXML(StanzaType.Handshake);
+                string handshake = _stanzaManager.GetXML(StanzaType.Header);
                 string reqAuth = _stanzaManager.GetXML(StanzaType.Digest_auth);
                 _clientSocket.Send(handshake);
                 _clientSocket.Send(reqAuth);
@@ -98,7 +98,7 @@ namespace XMPPConnect.MainClasses
             }
         }
 
-        private void InvokeOnMessage(string msg)
+        private void InvokeOnMessage(Message msg)
         {
             if (OnMessage != null)
             {

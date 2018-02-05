@@ -6,5 +6,5 @@ using System.Threading.Tasks;
 
 namespace XMPPConnect
 {
-    public delegate void MessageCallback(JabberID jid, MessageCallback msg);
+    public delegate void MessageHandler(object sender, Message msg);
 }

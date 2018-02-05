@@ -6,5 +6,5 @@ using System.Threading.Tasks;
 
 namespace XMPPConnect
 {
-    public delegate void MessageHandler(object sender, string msg);
+    public delegate void MessageCallback(object sender, Message msg);
 }

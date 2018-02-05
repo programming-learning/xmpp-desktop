@@ -10,28 +10,23 @@ namespace XMPPConnect
 {
     public class Stanza
     {
-        private string _xmlData;
+        protected string _xmlData;
         private JSONNode _node;
         private StreamReader _streamReader;
-        private string _dataPath;
+        private const string _dataPath = "JSONs\\xmlRequests.json";
         private StanzaType _type;
 
-        public Stanza()
+        public Stanza(StanzaType type)
         {
-            
-        }
-
-        public void SetXMLTemplatesFile(string dataPath)
-        {
-            _dataPath = dataPath;
             _streamReader = new StreamReader(_dataPath);
             _node = JSON.Parse(_streamReader.GetFileContent());
-        }
-
-        public void SetType(StanzaType type)
-        {
             _type = type;
             _xmlData = _node[type.ToString().ToLower()];
+        }
+
+        protected string GetChild(Enum type)
+        {
+            return _node[_type.ToString().ToLower()][type.ToString().ToLower()];
         }
 
         public override string ToString()
@@ -98,7 +93,7 @@ namespace XMPPConnect
 
     public enum StanzaType
     {
-        Handshake,
+        Header,
         Message,
         Digest_auth,
         Base_request,

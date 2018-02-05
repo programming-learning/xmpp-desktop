@@ -18,23 +18,7 @@ namespace XMPPConnect.Helpers
 
         public static string DigestMD5AuthAlgo(string xml, JabberID jid, string password)
         {
-            XmlDocumentSyntax root = Parser.ParseText(xml);
-
-            string base64Info = string.Empty;
-            foreach (IXmlElement node in root.Elements)
-            {
-                Console.WriteLine(node.Name);
-                Console.WriteLine(node.Value);
-                if (node.Name == "challenge")
-                {
-                    base64Info = node.Value;
-                }
-            }
-
-            byte[] uniqDataB = new byte[1024];
-            uniqDataB = Convert.FromBase64String(base64Info);
-
-            string uniqData = Encoding.Default.GetString(uniqDataB);
+            string uniqData = StanzaManager.ParseChallenge(xml);
             Regex reg = new Regex("nonce=\"[0-9]*\"");
             Match m = reg.Match(uniqData);
             string nonce = string.Empty;

@@ -8,6 +8,7 @@ using XMPPConnect.Managers;
 using System.Net.Sockets;
 using XMPPConnect.Net;
 using XMPPConnect.Helpers;
+using XMPPConnect.Client;
 
 namespace XMPPConnect.MainClasses
 {
@@ -17,7 +18,10 @@ namespace XMPPConnect.MainClasses
         private ClientSocket _clientSocket;
         private StanzaManager _stanzaManager;
         private bool _authenticated;
+        private bool _connected;
         private string _response;
+        private string _request;
+        private string _errorMessage;
         private string _password;
 
         public event ObjectHandler OnLogin;
@@ -28,12 +32,13 @@ namespace XMPPConnect.MainClasses
 
         public XmppClientConnection()
         {
-            _clientSocket.OnReceive += ClientSocketOnRecieve; 
+            InitSocket();
             _authenticated = false;
+            _connected = false;
             Port = 5222;
         }
 
-        public XmppClientConnection(JabberID jid, string password)
+        public XmppClientConnection(JabberID jid, string password) : this()
         {
             _jid = jid;
             _password = password;
@@ -47,7 +52,6 @@ namespace XMPPConnect.MainClasses
                 throw new ArgumentException("Server was not assign");
             }
 
-            _clientSocket = new ClientSocket();
             try
             {
                 _clientSocket.Connect(Server, Port);
@@ -80,6 +84,27 @@ namespace XMPPConnect.MainClasses
             } 
         }
 
+        public void Send(Stanza msg)
+        {
+            if(msg != null)
+            {
+                if(msg is Message)
+                {
+                    InvokeOnMessage((Message)msg);
+                }
+                else if(msg is Presence)
+                {
+                    InvokeOnPresence();
+                }
+                
+                _clientSocket.Send(msg.ToString());
+            }
+            else
+            {
+                InvokeOnError(new NullReferenceException("Message instance is null."));
+            }
+        }
+
         private void ClientSocketOnRecieve(object sender, byte[] data, int length)
         {
             _response = Encoding.UTF8.GetString(data);
@@ -88,6 +113,45 @@ namespace XMPPConnect.MainClasses
                 InvokeOnError(new Exception(_response));
             }
         }
+
+        private void InitSocket()
+        {
+            _clientSocket = new ClientSocket();
+            _clientSocket.OnSend += ClientSocketOnSend;
+            _clientSocket.OnReceive += ClientSocketOnReceive;
+            _clientSocket.OnConnect += ClientSocketOnConnect;
+            _clientSocket.OnDisconnect += ClientSocketOnDisconnect;
+            _clientSocket.OnError += ClientSocketOnError;
+        }
+
+#region Client Socket event handlers
+
+        private void ClientSocketOnSend(object sender, byte[] data, int length)
+        {
+            _request = Encoding.UTF8.GetString(data, 0, length);
+        }
+
+        private void ClientSocketOnReceive(object sender, byte[] data, int length)
+        {
+            _response = Encoding.UTF8.GetString(data, 0, length);
+        }
+
+        private void ClientSocketOnConnect(object sender)
+        {
+            _connected = true;
+        }
+
+        private void ClientSocketOnDisconnect(object sender)
+        {
+            _connected = false;
+        }
+
+        private void ClientSocketOnError(object sender, Exception ex)
+        {
+            _errorMessage = ex.Message;
+        }
+
+        #endregion
 
         #region InvokeEvents
         private void InvokeOnError(Exception ex)

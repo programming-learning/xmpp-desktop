@@ -11,22 +11,21 @@ using System.Threading;
 using Microsoft.Language.Xml;
 using System.Text.RegularExpressions;
 using System.Security.Cryptography;
+using System.Diagnostics;
 
-namespace XMPPConnect
+namespace Tests
 {
     class Program
     {
         static void Main(string[] args)
         {
             XmlDocument xmlDoc = new XmlDocument();
-
-            HereJabber("andrewprok@jabber.ru", "newbie52");
-
-            Console.ReadLine();
+            Debug.Assert(HereJabber("andrewprok@jabber.ru", "newbie52") == true);
+            Debug.Assert(HereJabber("andrewprok@jabber.ru", "newbe51") == false);
         }
 
         static StreamWriter logger = new StreamWriter("log.txt");
-        static void HereJabber(string jid, string password)
+        static bool HereJabber(string jid, string password)
         {
             string server = jid.Split('@')[1];
             string username = jid.Split('@')[0];
@@ -78,7 +77,7 @@ namespace XMPPConnect
                 string value = GetAuthenticationString(username, password, nonce, cNonce, clientHash);
 
                 string baseResponse = Convert.ToBase64String(Encoding.UTF8.GetBytes(value));
-  
+
                 //XmlTextWriter writer = new XmlTextWriter("XMLDocuments\\Base64Response.xml", null);
                 //writer.Formatting = Formatting.Indented;
                 //writer.WriteStartDocument();
@@ -96,6 +95,11 @@ namespace XMPPConnect
                 // Ответ base64 строкой
                 message = "<response xmlns=\"urn:ietf:params:xml:ns:xmpp-sasl\">" + baseResponse + "</response>";
                 response = SendMessageToServer(clientSocket, message, logger, 0);
+
+                if(response.Contains("not-authorized"))
+                {
+                    return false;
+                }
 
                 // SASL
                 message = "<response xmlns=\"urn:ietf:params:xml:ns:xmpp-sasl\"/>";
@@ -117,21 +121,29 @@ namespace XMPPConnect
                 // Бинд
                 message = "<iq type='set' id='bund_2'><bind xmlns='urn:ietf:params:xml:ns:xmpp-bind'><resource></resource></bind></iq>";
                 response = SendMessageToServer(clientSocket, message, logger, 1000);
-                
-                // Присутствие
-                message = "<presence><show></show></presence>";
-                response = SendMessageToServer(clientSocket, message, logger, 0);
-                
-                // Тестовое сообщение
-                message = "<message type=\"chat\" to=\"katepleh@jabber.ru\" id=\"id\" from=\"andrewprok@jabber.ru\"><body>Привет</body></message>";
-                response = SendMessageToServer(clientSocket, message, logger, 0);
 
                 logger.Close();
                 logger.Dispose();
+
+                if (!response.Contains("error"))
+                {
+                    return true;
+                }
+
+                return false;
+
+                // Присутствие
+                //message = "<presence><show></show></presence>";
+                //response = SendMessageToServer(clientSocket, message, logger, 0);
+
+                // Тестовое сообщение
+                //message = "<message type=\"chat\" to=\"katepleh@jabber.ru\" id=\"id\" from=\"andrewprok@jabber.ru\"><body>Привет</body></message>";
+                //response = SendMessageToServer(clientSocket, message, logger, 0);
             }
             catch (Exception ex)
             {
                 Console.WriteLine(ex.Message);
+                return false;
             }
         }
 
@@ -262,5 +274,5 @@ namespace XMPPConnect
 
             return result;
         }
-     }
+    }
 }

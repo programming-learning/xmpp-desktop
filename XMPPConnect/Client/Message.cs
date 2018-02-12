@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Text.RegularExpressions;
 
-namespace XMPPConnect
+namespace XMPPConnect.Client
 {
     public class Message : Stanza
     {

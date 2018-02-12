@@ -126,7 +126,6 @@
     <Compile Include="ObjectHandler.cs" />
     <Compile Include="OnSocketDataHandler.cs" />
     <Compile Include="PacketGrabber.cs" />
-    <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Managers\XmlPackageManager.cs" />
     <Compile Include="Stanza\Stanza.cs" />

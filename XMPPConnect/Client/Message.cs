@@ -16,20 +16,25 @@ namespace XMPPConnect.Client
         private JabberID _to;
         private string _body;
 
-        public Message() : base()
+        public Message() : base(StanzaType.Message)
         {
             _toPattern = new Regex("to='.*' id");
             _fromPattern = new Regex("from='.*'>");
             _bodyPattern = new Regex("<body>.*</body>");
-            this.SetType(StanzaType.Message);
         }
 
         public Message(string from, string to, string msg) : this()
         {
+            _from = new JabberID(from);
+            _to = new JabberID(to);
+            _body = msg;
+
             this._xmlData = this.ToString().Replace(Stanza.DataTemplate, msg).
                 Replace(Stanza.TagToTemplate, to).
                 Replace(Stanza.TagFromTemplate, from);
         }
+
+        public Message(JabberID from, JabberID to, string msg) : this(from.Full, to.Full, msg) { }       
 
         public Message(string xml) : this()
         {
@@ -42,6 +47,10 @@ namespace XMPPConnect.Client
                 _to = new JabberID(to.Groups[0].Value.Replace("to='", "").Replace("' id", ""));
                 _body = body.Groups[0].Value.Replace("<body>", "").Replace("</body>", "");
             }
+
+            this._xmlData = this.ToString().Replace(Stanza.DataTemplate, _body).
+                Replace(Stanza.TagToTemplate, _to.Full).
+                Replace(Stanza.TagFromTemplate, _from.Full);
         }
 
         public JabberID From

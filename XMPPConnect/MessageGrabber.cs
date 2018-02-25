@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using XMPPConnect.MainClasses;
+using XMPPConnect.Client;
 
 namespace XMPPConnect
 {

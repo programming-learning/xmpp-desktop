@@ -4,10 +4,6 @@
   "base_request": "<response xmlns='urn:ietf:params:xml:ns:xmpp-sasl'>%DATA%</response>",
   "sasl_on": "<response xmlns='urn:ietf:params:xml:ns:xmpp-sasl'/>",
   "bind": "<iq type='set' id='bund_2'><bind xmlns='urn:ietf:params:xml:ns:xmpp-bind'><resource></resource></bind></iq>",
-  "presence": {
-    "show": "<presence><show></show></presence>",
-    "chat": "<presence><show>chat</show></presence>",
-    "away": "<presence><show>away</show></presence>"
-  },
+  "presence": "<presence><show></show></presence>",
   "message": "<message type='chat' to='%TO%' id='id' from='%FROM%'><body>%DATA%</body></message>"
 }

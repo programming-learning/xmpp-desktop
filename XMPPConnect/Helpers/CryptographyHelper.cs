@@ -28,7 +28,7 @@ namespace XMPPConnect.Helpers
                 nonce = nonce.Replace("nonce=\"", "").Replace("\"", "");
             }
 
-            string cNonce = GetUniqCNonce();
+            string cNonce = Environment.MachineName;//GetUniqCNonce();
             string clientHash = GenerateClientHash(jid.Username, password, nonce, cNonce);
             string value = GetAuthenticationString(jid.Username, password, nonce, cNonce, clientHash);
 
@@ -65,7 +65,7 @@ namespace XMPPConnect.Helpers
             //result += password.GetHashCode();
 
             RandomNumberGenerator generator = RandomNumberGenerator.Create();
-            byte[] data = new byte[1024];
+            byte[] data = new byte[8];
             generator.GetBytes(data);
 
             return HexEncoding.ToString(data).ToLower();

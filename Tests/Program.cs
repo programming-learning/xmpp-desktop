@@ -3,8 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Net;
-using System.Xml;
-using System.Xml.Linq;
 using System.IO;
 using System.Net.Sockets;
 using System.Threading;
@@ -12,16 +10,22 @@ using Microsoft.Language.Xml;
 using System.Text.RegularExpressions;
 using System.Security.Cryptography;
 using System.Diagnostics;
-
+using XMPPConnect.Client;
+using XMPPConnect;
 namespace Tests
 {
     class Program
     {
         static void Main(string[] args)
         {
-            XmlDocument xmlDoc = new XmlDocument();
-            Debug.Assert(HereJabber("andrewprok@jabber.ru", "newbie52") == true);
-            Debug.Assert(HereJabber("andrewprok@jabber.ru", "newbe51") == false);
+            Presence presence = new Presence(ShowType.Show);
+
+            Console.WriteLine(presence.ToString() + " " + "<presence><show></show></presence>");
+            //XmlDocument xmlDoc = new XmlDocument();
+            HereJabber("andrewprok@jabber.ru", "newbie52");
+            //Debug.Assert(HereJabber("andrewprok@jabber.ru", "newbie52") == true);
+            //Debug.Assert(HereJabber("andrewprok@jabber.ru", "newbe51") == false);
+            Console.ReadLine();
         }
 
         static StreamWriter logger = new StreamWriter("log.txt");
@@ -33,6 +37,8 @@ namespace Tests
             IPAddress address = Dns.GetHostEntry("jabber.ru").AddressList[0];
             IPEndPoint endPoint = new IPEndPoint(address, 5222);
             Socket clientSocket = new Socket(address.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
+            //TcpClient clientSocket = new TcpClient(address.AddressFamily);
+            
 
             try
             {
@@ -51,8 +57,8 @@ namespace Tests
                 string base64Info = string.Empty;
                 foreach (IXmlElement node in root.Elements)
                 {
-                    Console.WriteLine(node.Name);
-                    Console.WriteLine(node.Value);
+                    //Console.WriteLine(node.Name);
+                    //Console.WriteLine(node.Value);
                     if (node.Name == "challenge")
                     {
                         base64Info = node.Value;
@@ -122,6 +128,14 @@ namespace Tests
                 message = "<iq type='set' id='bund_2'><bind xmlns='urn:ietf:params:xml:ns:xmpp-bind'><resource></resource></bind></iq>";
                 response = SendMessageToServer(clientSocket, message, logger, 1000);
 
+                //Присутствие
+                message = "<presence><show></show></presence>";
+                response = SendMessageToServer(clientSocket, message, logger, 0);
+
+                // Тестовое сообщение
+                message = "<message type=\"chat\" to=\"katepleh@jabber.ru\" id=\"id\" from=\"andrewprok@jabber.ru\"><body>Привет</body></message>";
+                response = SendMessageToServer(clientSocket, message, logger, 0);
+
                 logger.Close();
                 logger.Dispose();
 
@@ -131,14 +145,6 @@ namespace Tests
                 }
 
                 return false;
-
-                // Присутствие
-                //message = "<presence><show></show></presence>";
-                //response = SendMessageToServer(clientSocket, message, logger, 0);
-
-                // Тестовое сообщение
-                //message = "<message type=\"chat\" to=\"katepleh@jabber.ru\" id=\"id\" from=\"andrewprok@jabber.ru\"><body>Привет</body></message>";
-                //response = SendMessageToServer(clientSocket, message, logger, 0);
             }
             catch (Exception ex)
             {
@@ -159,6 +165,23 @@ namespace Tests
             logger.WriteLine("S:" + response + Environment.NewLine);
 
             Console.WriteLine(response);
+            return response;
+        }
+
+        static string SendMessageToServer(TcpClient clientSocket, string message, StreamWriter logger, int timeout)
+        {
+            Stream networkStream = clientSocket.GetStream();
+            byte[] bytes = new byte[1024];
+            logger.WriteLine("Send:" + message + Environment.NewLine);
+            Console.WriteLine("Send:" + message + Environment.NewLine);
+            byte[] msg = Encoding.UTF8.GetBytes(message);
+            networkStream.Write(msg, 0, msg.Length);
+            Thread.Sleep(timeout);
+            int bytesResp = networkStream.Read(bytes,0, bytes.Length);
+            string response = Encoding.UTF8.GetString(bytes, 0, bytesResp);
+            logger.WriteLine("Response:" + response + Environment.NewLine);
+            Console.WriteLine("Response:" + response + Environment.NewLine);
+            //Console.WriteLine(response);
             return response;
         }
 

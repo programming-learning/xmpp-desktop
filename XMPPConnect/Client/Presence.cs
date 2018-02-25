@@ -13,9 +13,10 @@ namespace XMPPConnect.Client
         //private readonly string _shTypePattern = "<show>.*<show/>";
         //private readonly string _shTypeDefault = "<show>%TYPE%<show/>";
 
-        public Presence(ShowType type) : base(StanzaType.Presense)
+        public Presence(ShowType type) : base()
         {
             ShowType = type;
+            base._type = StanzaType.Presence;
             base._xmlData = base.GetChild(type);
             //base._xmlData = Regex.Replace(base._xmlData, _shTypePattern, _shTypeDefault.Replace(TypeTemplate, type.ToString().ToLower()));
         }
@@ -30,7 +31,7 @@ namespace XMPPConnect.Client
 
     public enum ShowType
     {
-        Default,
+        Show,
         Away,
         Chat
     }

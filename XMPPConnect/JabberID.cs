@@ -47,6 +47,11 @@ namespace XMPPConnect
             return true;
         }
 
+        public override string ToString()
+        {
+            return Full;
+        }
+
         public string Username
         {
             get { return _user; }

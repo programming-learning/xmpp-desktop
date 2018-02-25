@@ -7,8 +7,7 @@ using System.Threading.Tasks;
 namespace XMPPConnect.AbstractClasses
 {
     public abstract class XmppConnection
-    {
-        
+    {      
         private int kek;
     }
 }

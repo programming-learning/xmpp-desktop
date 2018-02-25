@@ -14,16 +14,22 @@ namespace XMPPConnect
         private JSONNode _node;
         private StreamReader _streamReader;
         private const string _dataPath = "JSONs\\xmlRequests.json";
-        private StanzaType _type;
+        protected StanzaType _type;
 
-        public Stanza(StanzaType type)
+        public Stanza()
         {
             _streamReader = new StreamReader(_dataPath);
             _node = JSON.Parse(_streamReader.GetFileContent());
+        }
+
+        public Stanza(StanzaType type) : this()
+        {
+            // Потом добавить Additional Type. Из Presence добавить PresenceType.
             _type = type;
             _xmlData = _node[type.ToString().ToLower()];
         }
 
+        // Для вытаскивания под-json objects
         protected string GetChild(Enum type)
         {
             return _node[_type.ToString().ToLower()][type.ToString().ToLower()];
@@ -58,7 +64,7 @@ namespace XMPPConnect
             }
         }
 
-        public bool ContainsData
+        public bool ContainsDataTemplate
         {
             get
             {
@@ -66,7 +72,7 @@ namespace XMPPConnect
             }
         }
 
-        public bool ContainsTagTo
+        public bool ContainsTagToTemplate
         {
             get
             {
@@ -74,7 +80,7 @@ namespace XMPPConnect
             }
         }
 
-        public bool ContainsTagFrom
+        public bool ContainsTagFromTemplate
         {
             get
             {
@@ -99,6 +105,6 @@ namespace XMPPConnect
         Base_request,
         Sasl_on,
         Bind,
-        Presense
+        Presence
     }
 }

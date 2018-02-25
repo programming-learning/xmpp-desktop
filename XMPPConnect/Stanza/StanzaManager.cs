@@ -11,9 +11,9 @@ namespace XMPPConnect
     {
         private Stanza _stanza;
         
-        public StanzaManager(StanzaType type)
+        public StanzaManager(/*StanzaType type*/)
         {
-            _stanza = new Stanza(type);
+            //_stanza = new Stanza(type);
         }
 
         //public string GetHandshakeXML()
@@ -44,6 +44,7 @@ namespace XMPPConnect
         public string GetXML(StanzaType type, string data = null, string to = null, string from = null)
         {
             string resultXML = string.Empty;
+            _stanza = new Stanza(type);
             return _stanza.ToString().Replace(Stanza.DataTemplate, data).
                 Replace(Stanza.TagToTemplate, to).
                 Replace(Stanza.TagFromTemplate, from);
@@ -69,8 +70,6 @@ namespace XMPPConnect
             string base64Info = string.Empty;
             foreach (IXmlElement node in root.Elements)
             {
-                Console.WriteLine(node.Name);
-                Console.WriteLine(node.Value);
                 if (node.Name == "challenge")
                 {
                     base64Info = node.Value;

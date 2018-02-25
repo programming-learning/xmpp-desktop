@@ -94,11 +94,9 @@
       <HintPath>..\packages\System.Security.Cryptography.X509Certificates.4.3.0\lib\net46\System.Security.Cryptography.X509Certificates.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Data" />
-    <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AbstractClasses\XmppConnection.cs" />
@@ -126,6 +124,7 @@
     <Compile Include="ObjectHandler.cs" />
     <Compile Include="OnSocketDataHandler.cs" />
     <Compile Include="PacketGrabber.cs" />
+    <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Managers\XmlPackageManager.cs" />
     <Compile Include="Stanza\Stanza.cs" />

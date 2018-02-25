@@ -9,6 +9,7 @@ using System.Net.Sockets;
 using XMPPConnect.Net;
 using XMPPConnect.Helpers;
 using XMPPConnect.Client;
+using System.Threading;
 
 namespace XMPPConnect.MainClasses
 {
@@ -23,6 +24,7 @@ namespace XMPPConnect.MainClasses
         private string _request;
         private string _errorMessage;
         private string _password;
+        private int _waitTime;
 
         public event ObjectHandler OnLogin;
         public event ObjectHandler OnBinded;
@@ -33,8 +35,10 @@ namespace XMPPConnect.MainClasses
         public XmppClientConnection()
         {
             InitSocket();
+            _stanzaManager = new StanzaManager();
             _authenticated = false;
             _connected = false;
+            _waitTime = 400;
             Port = 5222;
         }
 
@@ -49,26 +53,53 @@ namespace XMPPConnect.MainClasses
         {
             if (string.IsNullOrEmpty(Server))
             {
-                throw new ArgumentException("Server was not assign");
+                throw new ArgumentException("Server was not assign.");
             }
 
             try
             {
                 _clientSocket.Connect(Server, Port);
+                Thread.Sleep(_waitTime);
+
                 string handshake = _stanzaManager.GetXML(StanzaType.Header);
                 string reqAuth = _stanzaManager.GetXML(StanzaType.Digest_auth);
                 _clientSocket.Send(handshake);
+                Thread.Sleep(_waitTime);
+
                 _clientSocket.Send(reqAuth);
-                _clientSocket.Send(CryptographyHelper.DigestMD5AuthAlgo(_response, _jid, _password));
+                Thread.Sleep(_waitTime);
+
+                string base64Request = _stanzaManager.GetXML(StanzaType.Base_request, CryptographyHelper.DigestMD5AuthAlgo(_response, _jid, _password));
+                _clientSocket.Send(base64Request);
+                Thread.Sleep(_waitTime);
+
                 string saslOn = _stanzaManager.GetXML(StanzaType.Sasl_on);
                 _clientSocket.Send(saslOn);
+                Thread.Sleep(_waitTime);
+
                 _clientSocket.Send(handshake);
+                Thread.Sleep(_waitTime);
+
                 string bind = _stanzaManager.GetXML(StanzaType.Bind);
                 _clientSocket.Send(bind);
+                Thread.Sleep(_waitTime);
+
+                if (!Response.Contains("error"))
+                {
+                    _authenticated = true;
+                }
+
+                // Test presence and message
+
+                //string presence = _stanzaManager.GetXML(StanzaType.Presence);
+                //_clientSocket.Send(presence);
+
+                //Message message = new Message(_jid.ToString(), "katepleh@jabber.ru","Hello");
+                //_clientSocket.Send(message.ToString());
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex);
+                InvokeOnError(ex);
             }
         }
 
@@ -81,36 +112,28 @@ namespace XMPPConnect.MainClasses
             else
             {
                 throw new SocketException();
-            } 
+            }
         }
 
         public void Send(Stanza msg)
         {
-            if(msg != null)
+            if (msg != null)
             {
-                if(msg is Message)
+                if (msg is Message)
                 {
                     InvokeOnMessage((Message)msg);
                 }
-                else if(msg is Presence)
+                else if (msg is Presence)
                 {
                     InvokeOnPresence();
                 }
-                
+
                 _clientSocket.Send(msg.ToString());
+                Console.WriteLine("Send:" + msg.ToString());
             }
             else
             {
                 InvokeOnError(new NullReferenceException("Message instance is null."));
-            }
-        }
-
-        private void ClientSocketOnRecieve(object sender, byte[] data, int length)
-        {
-            _response = Encoding.UTF8.GetString(data);
-            if (_response.Contains("error"))
-            {
-                InvokeOnError(new Exception(_response));
             }
         }
 
@@ -124,31 +147,39 @@ namespace XMPPConnect.MainClasses
             _clientSocket.OnError += ClientSocketOnError;
         }
 
-#region Client Socket event handlers
+        #region Client Socket event handlers
 
         private void ClientSocketOnSend(object sender, byte[] data, int length)
         {
             _request = Encoding.UTF8.GetString(data, 0, length);
+            Console.WriteLine("Send:" + _request);
         }
 
         private void ClientSocketOnReceive(object sender, byte[] data, int length)
         {
-            _response = Encoding.UTF8.GetString(data, 0, length);
+            Response = Encoding.UTF8.GetString(data);
+            Console.WriteLine("Response:" + _response);
+            if (Response.Contains("error") || Response.Contains("failure"))
+            {
+                InvokeOnError(new Exception(Response));
+            }
         }
 
         private void ClientSocketOnConnect(object sender)
         {
-            _connected = true;
+            //_connected = true;
         }
 
         private void ClientSocketOnDisconnect(object sender)
         {
-            _connected = false;
+            //_connected = false;
+            _authenticated = false;
         }
 
         private void ClientSocketOnError(object sender, Exception ex)
         {
             _errorMessage = ex.Message;
+            InvokeOnError(new Exception(_errorMessage));
         }
 
         #endregion
@@ -198,12 +229,21 @@ namespace XMPPConnect.MainClasses
         #region Properties
         public string Server { get; set; }
         public int Port { get; set; }
-        public bool Authenticated
+        public bool Authenticated { get { return _authenticated; } }
+        public bool Connected { get { return _clientSocket.Connected; } }
+        private string Response
         {
             get
             {
-                return _authenticated;
+                if (_response == null)
+                {
+                    return string.Empty;
+                }
+
+                return _response;
             }
+
+            set { _response = value; }
         }
         #endregion
 

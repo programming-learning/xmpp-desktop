@@ -50,6 +50,9 @@ namespace XMPPConnect.Tests
                 new JabberID(jidString), password);
             connection.Login();
             Thread.Sleep(wait);
+            // Почему я должен тут ждать и почему 5000? А если я подожду 2000? или 200?
+            // 1. Если ты всё-таки должен ждать, то у тебя нигде не видно этого в интерфейсе.
+            // 2. Я прихожу к выводу ,что ждать всё-таки не лучшая идея. Тем более неизвестное количество времени.
 
             Assert.IsTrue(connection.Connected);
             Assert.IsTrue(connection.Authenticated);
@@ -104,6 +107,7 @@ namespace XMPPConnect.Tests
             Assert.AreEqual("<presence><show></show></presence>", presence.ToString());
         }
 
+        // Что делает тест?
         [Test]
         public void TestSendPresenceAndMessage()
         {
@@ -124,8 +128,10 @@ namespace XMPPConnect.Tests
             Thread.Sleep(wait);
 
             connection.Send(presence);
-            connection.Send(message);
+
+            Assert.DoesNotThrow(() => { connection.Send(message); });
+            
             Thread.Sleep(500);
-        }
+        } 
     }
 }

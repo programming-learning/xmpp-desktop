@@ -7,7 +7,7 @@ using System.Text.RegularExpressions;
 
 namespace XMPPConnect.Client
 {
-    public class Message : Stanza
+    public class Message : Stanza // What is the purpose of inheritance? What fields do you use?
     {
         private Regex _fromPattern;
         private Regex _toPattern;

@@ -44,8 +44,8 @@ namespace XMPPConnect
         public string GetXML(StanzaType type, string data = null, string to = null, string from = null)
         {
             string resultXML = string.Empty;
-            _stanza = new Stanza(type);
-            return _stanza.ToString().Replace(Stanza.DataTemplate, data).
+            var stanza = new Stanza(type); // private state?
+            return stanza.ToString().Replace(Stanza.DataTemplate, data).
                 Replace(Stanza.TagToTemplate, to).
                 Replace(Stanza.TagFromTemplate, from);
 

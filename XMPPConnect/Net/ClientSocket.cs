@@ -20,8 +20,8 @@ namespace XMPPConnect.Net
         private Timer _connectTimeoutTimer;
         private int _connectTimeout;
         private bool _connectTimedOut;
-        private Stream _networkStream;
-        private bool _pendingSend;
+        private Stream _networkStream; // shared for many purposes
+        private bool _pendingSend; // maybe here is not needed (queue)
         private byte[] _readBuffer;
         private Queue _sendQueue;
         private int _port;
@@ -58,6 +58,8 @@ namespace XMPPConnect.Net
                 _connectTimeoutTimer = new Timer(callback, null, this.ConnectTimeout, this.ConnectTimeout);
                 //_socket.BeginConnect(endPoint, new AsyncCallback(EndConnect), null);
                 _tcpClient.BeginConnect(serverAddr, port, new AsyncCallback(EndConnectTcpClient), null);
+                
+                // https://msdn.microsoft.com/en-us/library/system.iasyncresult%28v=vs.110%29.aspx?f=255&MSPPError=-2147217396
             }
             catch (Exception ex)
             {
@@ -70,7 +72,7 @@ namespace XMPPConnect.Net
             var tcpKeepAlive = new TcpKeepAlive()
             {
                 dwOnOff = 1,
-                dwKeepAliveInterval = 20,
+                dwKeepAliveInterval = 20, // what does the numbers mean
                 dwKeepAliveTime = 500
             };
 
@@ -173,6 +175,7 @@ namespace XMPPConnect.Net
             }
         }
 
+        // recieve what?
         private void Receive()
         {
             _networkStream.BeginRead(_readBuffer, 0, BUFFER_SIZE, new AsyncCallback(EndReceive), null);
@@ -181,6 +184,7 @@ namespace XMPPConnect.Net
         private void ReceiveTcpClient()
         {
             _networkStream.BeginRead(_readBuffer, 0, BUFFER_SIZE, new AsyncCallback(EndReceive), null);
+            // new AsyncCallback is redundant
         }
 
         private void EndReceive(IAsyncResult ar)
@@ -194,7 +198,7 @@ namespace XMPPConnect.Net
 
                     if (Connected)
                     {
-                        Receive();
+                        _networkStream.BeginRead(_readBuffer, 0, BUFFER_SIZE, new AsyncCallback(EndReceive), null);
                     }
                 }
                 //else
@@ -204,7 +208,7 @@ namespace XMPPConnect.Net
             }
             catch (Exception ex)
             {
-
+                 // todo ?
             }
         }
 
@@ -234,7 +238,7 @@ namespace XMPPConnect.Net
             }
             catch (Exception ex)
             {
-
+                // todo ?
             }
             finally
             {
@@ -250,9 +254,10 @@ namespace XMPPConnect.Net
         private void EndSend(IAsyncResult ar)
         {
             ClientSocket socket;
-            Monitor.Enter(socket = this);
+            Monitor.Enter(socket = this); // why is not static object lock?
             try
             {
+                // 2 actions
                 _networkStream.EndWrite(ar);
                 if (_sendQueue.Count > 0)
                 {
@@ -325,6 +330,7 @@ namespace XMPPConnect.Net
         #endregion
 
         #region Properties
+        // свойства обычно лежат вверху
         public string Address { get { return _address; } set { _address = value; } }
         public bool Connected
         {

@@ -133,7 +133,7 @@ namespace XMPPConnect.Net
 
                     if (Connected)
                     {
-                        _networkStream.BeginRead(_readBuffer, 0, BUFFER_SIZE, new AsyncCallback(EndReceive), null);
+                        Receive();
                     }
                 }
                 //else

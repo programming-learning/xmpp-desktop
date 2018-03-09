@@ -31,6 +31,62 @@ namespace XMPPConnect.Tests
         }
 
         [Test]
+        public void TestClientSocketDisconnect()
+        {
+            int connectTimeout = 2000;
+            string address = "jabber.ru";
+            int port = 5222;
+
+            ClientSocket client = new ClientSocket();
+            client.Connect(address, port);
+            Thread.Sleep(connectTimeout);
+
+            client.Disconnect();
+            Assert.IsFalse(client.Connected);
+        }
+
+        private string _partnerMessage;
+        [Test]
+        public void TestMessageGrabber()
+        {
+            Presence presence = new Presence(ShowType.Show);
+
+            int waitAuth = 5000;
+            int waitMessage = 20000;
+            string jid = "andrewprok@jabber.ru";
+            string password = "newbie52";
+            string jidPartnerString = "katepleh@jabber.ru";
+            string msg = "hello";
+            string expected = "katepleh@jabber.ru:hello";
+
+            JabberID jidPartner = new JabberID(jidPartnerString);
+            Message message = new Message(jid, jidPartner.Full, msg);
+
+            XmppClientConnection connection = new XmppClientConnection(
+                new JabberID(jid), password);
+            connection.Log-in();
+            Thread.Sleep(waitAuth);
+
+            connection.Send(presence);
+            connection.Send(message);
+
+            connection.MessageGrabber.Add(
+                jidPartner, new MessageCallback(messageCallback));
+
+            Thread.Sleep(waitMessage);
+
+            Assert.AreEqual(expected, _partnerMessage);
+        }
+
+        private void messageCallback(object sender, Message message)
+        {
+            if(message.Body != null)
+            {
+                _partnerMessage = message.From.Full + ":" + message.Body;
+            }
+        }
+
+        [Test]
         public void TestConnectionInit()
         {
             XmppClientConnection connection = new XmppClientConnection(

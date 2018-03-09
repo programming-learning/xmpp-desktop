@@ -1,38 +1,50 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Net;
-using System.IO;
-using System.Net.Sockets;
 using System.Threading;
-using Microsoft.Language.Xml;
-using System.Text.RegularExpressions;
-using System.Security.Cryptography;
-using System.Diagnostics;
-using XMPPConnect.Net;
 using XMPPConnect.MainClasses;
+using XMPPConnect.Client;
 
 namespace XMPPConnect
 {
     class Program
     {
+        private static string _partnerMessage;
         static void Main(string[] args)
         {
-            int connectTimeout = 10000;
-            string jidString = "andrewprok@jabber.ru";
+            Presence presence = new Presence(ShowType.Show);
+
+            int waitAuth = 5000;
+            int waitMessage = 20000;
+            string jid = "andrewprok@jabber.ru";
             string password = "newbie52";
+            string jidPartnerString = "katepleh@jabber.ru";
+            string msg = "hello";
+            string expected = "katepleh@jabber.ru:hello";
+
+            JabberID jidPartner = new JabberID(jidPartnerString);
+            Message message = new Message(jid, jidPartner.Full, msg);
 
             XmppClientConnection connection = new XmppClientConnection(
-                new JabberID(jidString), password);
+                new JabberID(jid), password);
             connection.Login();
-            Thread.Sleep(connectTimeout);
-            while (true)
-            {
-                Thread.Sleep(200);
-                Console.WriteLine(connection.Authenticated);
-            }
+            Thread.Sleep(waitAuth);
+
+            connection.Send(presence);
+            connection.Send(message);
+
+            connection.MessageGrabber.Add(
+                jidPartner, new MessageCallback(messageCallback));
+
+            Thread.Sleep(waitMessage);
+
             Console.ReadLine();
+        }
+
+        private static void messageCallback(object sender, Message message)
+        {
+            if (message.Body != null)
+            {
+                _partnerMessage = message.From.Full + ":" + message.Body;
+            }
         }
     }
 }

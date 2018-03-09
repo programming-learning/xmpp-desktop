@@ -11,10 +11,9 @@ using System.Net;
 using System.Runtime.InteropServices;
 
 namespace XMPPConnect.Net
-{   // TODO: Почистить от старого Socket
+{
     public class ClientSocket : ISocket
     {
-        private Socket _socket;
         private TcpClient _tcpClient;
         private const int BUFFER_SIZE = 1024;
         private Timer _connectTimeoutTimer;
@@ -46,46 +45,17 @@ namespace XMPPConnect.Net
             {
                 IPAddress serverAddr = Dns.GetHostEntry(address).AddressList[0];
                 IPEndPoint endPoint = new IPEndPoint(serverAddr, port);
-                //_socket = new Socket(serverAddr.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
-                //_socket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.KeepAlive, true);
-                //SetKeepAliveOptions();
                 _tcpClient = new TcpClient(serverAddr.AddressFamily);
-                //_tcpClient.ReceiveTimeout = 500;
-                //_tcpClient.SendTimeout = 500;
 
                 _connectTimedOut = false;
                 TimerCallback callback = new TimerCallback(ConnnectTimeoutTimerDelegate);
                 _connectTimeoutTimer = new Timer(callback, null, this.ConnectTimeout, this.ConnectTimeout);
-                //_socket.BeginConnect(endPoint, new AsyncCallback(EndConnect), null);
-                _tcpClient.BeginConnect(serverAddr, port, new AsyncCallback(EndConnectTcpClient), null);
+                _tcpClient.BeginConnect(serverAddr, port, new AsyncCallback(EndConnect), null);
             }
             catch (Exception ex)
             {
                 InvokeOnError(ex);
             }
-        }
-
-        private void SetKeepAliveOptions()
-        {
-            var tcpKeepAlive = new TcpKeepAlive()
-            {
-                dwOnOff = 1,
-                dwKeepAliveInterval = 20,
-                dwKeepAliveTime = 500
-            };
-
-            var keepAlivePtr = IntPtr.Zero;
-            int structSz = 0;
-
-            structSz = Marshal.SizeOf(tcpKeepAlive);
-            keepAlivePtr = Marshal.AllocHGlobal(structSz);
-            Marshal.StructureToPtr(tcpKeepAlive, keepAlivePtr, true);
-
-            byte[] structBytes = new byte[structSz];
-            Marshal.Copy(keepAlivePtr, structBytes, 0, structSz);
-            Marshal.FreeHGlobal(keepAlivePtr);
-
-            _socket.IOControl(IOControlCode.KeepAliveValues, structBytes, null);
         }
 
         public void Disconnect()
@@ -96,20 +66,12 @@ namespace XMPPConnect.Net
                 _sendQueue.Clear();
             }
 
-            if (_socket != null)
+            if (_tcpClient != null)
             {
-                try
-                {
-                    _socket.Shutdown(SocketShutdown.Both);
-                }
-                catch (Exception ex)
-                {
-                    InvokeOnError(ex);
-                }
 
                 try
                 {
-                    _socket.Close();
+                    _tcpClient.Close();
                 }
                 catch (Exception ex)
                 {
@@ -124,7 +86,7 @@ namespace XMPPConnect.Net
         {
             _connectTimeoutTimer.Dispose();
             _connectTimedOut = true;
-            _socket.Close();
+            _tcpClient.Close();
         }
 
         private void EndConnect(IAsyncResult ar)
@@ -138,8 +100,9 @@ namespace XMPPConnect.Net
                 try
                 {
                     _connectTimeoutTimer.Dispose();
-                    _socket.EndConnect(ar);
-                    _networkStream = new NetworkStream(_socket, false);
+                    _tcpClient.EndConnect(ar);
+                    // _networkStream - разделяемый ресурс
+                    _networkStream = _tcpClient.GetStream();
                     InvokeOnConnect();
                     Receive();
                 }
@@ -150,35 +113,7 @@ namespace XMPPConnect.Net
             }
         }
 
-        private void EndConnectTcpClient(IAsyncResult ar)
-        {
-            if (_connectTimedOut)
-            {
-                InvokeOnError(new Exception("Connect timed out."));
-            }
-            else
-            {
-                try
-                {
-                    _connectTimeoutTimer.Dispose();
-                    _tcpClient.EndConnect(ar);
-                    _networkStream = _tcpClient.GetStream();
-                    InvokeOnConnect();
-                    ReceiveTcpClient();
-                }
-                catch (Exception ex)
-                {
-                    InvokeOnError(ex);
-                }
-            }
-        }
-
         private void Receive()
-        {
-            _networkStream.BeginRead(_readBuffer, 0, BUFFER_SIZE, new AsyncCallback(EndReceive), null);
-        }
-
-        private void ReceiveTcpClient()
         {
             _networkStream.BeginRead(_readBuffer, 0, BUFFER_SIZE, new AsyncCallback(EndReceive), null);
         }
@@ -274,14 +209,6 @@ namespace XMPPConnect.Net
             }
         }
 
-        [StructLayout(LayoutKind.Sequential)]
-        struct TcpKeepAlive
-        {
-            public uint dwOnOff;
-            public uint dwKeepAliveTime;
-            public uint dwKeepAliveInterval;
-        }
-
         #region InvokeEvents
         private void InvokeOnError(Exception ex)
         {
@@ -330,13 +257,6 @@ namespace XMPPConnect.Net
         {
             get
             {
-                //if (this._socket == null)
-                //{
-                //    return false;
-                //}
-
-                //return this._socket.Connected;
-
                 if(this._tcpClient == null)
                 {
                     return false;

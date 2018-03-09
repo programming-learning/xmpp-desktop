@@ -17,7 +17,7 @@ namespace XMPPConnect.MainClasses
     {
         private JabberID _jid;
         private ClientSocket _clientSocket;
-        private StanzaManager _stanzaManager;
+        private StanzaManager _stanzaManager;      
         private bool _authenticated;
         private bool _connected;
         private string _response;
@@ -32,6 +32,8 @@ namespace XMPPConnect.MainClasses
         public event ObjectHandler OnPresence;
         public event MessageHandler OnMessage;
 
+        public MessageGrabber _messageGrabber;
+
         public XmppClientConnection()
         {
             InitSocket();
@@ -40,6 +42,7 @@ namespace XMPPConnect.MainClasses
             _connected = false;
             _waitTime = 400;
             Port = 5222;
+            _messageGrabber = new MessageGrabber(this);
         }
 
         public XmppClientConnection(JabberID jid, string password) : this()
@@ -231,6 +234,7 @@ namespace XMPPConnect.MainClasses
         public int Port { get; set; }
         public bool Authenticated { get { return _authenticated; } }
         public bool Connected { get { return _clientSocket.Connected; } }
+        public MessageGrabber MessageGrabber { get { return _messageGrabber; } }
         private string Response
         {
             get

@@ -98,6 +98,7 @@ namespace XMPPConnect.Net
                 _connectTimeoutTimer = new Timer(callback, null, this.ConnectTimeout, this.ConnectTimeout);
 
                 _tcpClient.Connect(serverAddr, port);
+                _networkStream = _tcpClient.GetStream();
             }
             catch (Exception ex)
             {
@@ -108,7 +109,6 @@ namespace XMPPConnect.Net
         public void Send(string data)
         {
             Send(Encoding.UTF8.GetBytes(data));
-            Receive();
         }
 
         public void Send(byte[] data)
@@ -119,6 +119,7 @@ namespace XMPPConnect.Net
 
         public void Receive()
         {
+            _networkStream.Read(_readBuffer, 0, BUFFER_SIZE);
             InvokeOnReceive(_readBuffer, _readBuffer.Length);
         }
 

@@ -66,39 +66,26 @@ namespace XMPPConnect.MainClasses
 
             try
             {
-                asyncResult = _clientSocket.BeginConnect(Server, Port);
-                asyncResult.AsyncWaitHandle.WaitOne();
-
-                //Thread.Sleep(_waitTime);
+                _clientSocket.Connect(Server, Port);
 
                 string handshake = _stanzaManager.GetXML(StanzaType.Header);
                 string reqAuth = _stanzaManager.GetXML(StanzaType.Digest_auth);
-                asyncResult = _clientSocket.BeginSend(handshake);
-                asyncResult.AsyncWaitHandle.WaitOne();
-                //Thread.Sleep(_waitTime);
+                _clientSocket.Send(handshake);
 
-                asyncResult = _clientSocket.BeginSend(reqAuth);
-                asyncResult.AsyncWaitHandle.WaitOne();
-                //Thread.Sleep(_waitTime);
+                _clientSocket.Send(reqAuth);
+
+                WaitChallenge();
 
                 string base64Request = _stanzaManager.GetXML(StanzaType.Base_request, CryptographyHelper.DigestMD5AuthAlgo(_response, _jid, _password));
-                asyncResult = _clientSocket.BeginSend(base64Request);
-                asyncResult.AsyncWaitHandle.WaitOne();
-                //Thread.Sleep(_waitTime);
+                _clientSocket.Send(base64Request);
 
                 string saslOn = _stanzaManager.GetXML(StanzaType.Sasl_on);
-                asyncResult = _clientSocket.BeginSend(saslOn);
-                asyncResult.AsyncWaitHandle.WaitOne();
-                //Thread.Sleep(_waitTime);
+                _clientSocket.Send(saslOn);
 
-                asyncResult = _clientSocket.BeginSend(handshake);
-                asyncResult.AsyncWaitHandle.WaitOne();
-                //Thread.Sleep(_waitTime);
+                _clientSocket.Send(handshake);
 
                 string bind = _stanzaManager.GetXML(StanzaType.Bind);
-                asyncResult = _clientSocket.BeginSend(bind);
-                asyncResult.AsyncWaitHandle.WaitOne();
-                //Thread.Sleep(_waitTime);
+                _clientSocket.Send(bind);
 
                 if (!Response.Contains("error"))
                 {
@@ -106,6 +93,7 @@ namespace XMPPConnect.MainClasses
                     InvokeOnLogin();
                 }
 
+                _clientServerLogger.Close();
                 // Test presence and message
 
                 //string presence = _stanzaManager.GetXML(StanzaType.Presence);
@@ -117,6 +105,14 @@ namespace XMPPConnect.MainClasses
             catch (Exception ex)
             {
                 InvokeOnError(ex);
+            }
+        }
+
+        private void WaitChallenge()
+        {
+            while (!Response.Contains("challenge"))
+            {
+                _clientSocket.Receive();
             }
         }
 

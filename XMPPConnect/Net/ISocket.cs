@@ -8,10 +8,10 @@ namespace XMPPConnect.Net
 {
     public interface ISocket
     {
-        void Connect(string address, int port);
+        IAsyncResult BeginConnect(string address, int port);
         void Disconnect();
-        void Send(byte[] data);
-        void Send(string str);
+        IAsyncResult BeginSend(byte[] data);
+        IAsyncResult BeginSend(string str);
 
 
         string Address { get; set; }

@@ -25,6 +25,7 @@ namespace XMPPConnect.Net
         private Queue _sendQueue;
         private int _port;
         private string _address;
+        private IAsyncResult _asyncResult;
 
         public event ObjectHandler OnConnect;
         public event ObjectHandler OnDisconnect;
@@ -32,10 +33,55 @@ namespace XMPPConnect.Net
         public event OnSocketDataHandler OnReceive;
         public event ErrorHanlder OnError;
 
+        #region Properties
+        // свойства обычно лежат вверху
+        public string Address { get { return _address; } set { _address = value; } }
+        public bool Connected
+        {
+            get
+            {
+                if (this._tcpClient == null)
+                {
+                    return false;
+                }
+
+                return this._tcpClient.Connected;
+            }
+        }
+        public int ConnectTimeout { get { return _connectTimeout; } set { _connectTimeout = value; } }
+        public int Port { get { return _port; } set { _port = value; } }
+        #endregion
+
         public ClientSocket()
         {
             _connectTimeout = 30000;
             _sendQueue = new Queue();
+        }
+
+        public IAsyncResult BeginConnect(string address, int port)
+        {
+            IAsyncResult result = null;
+            _readBuffer = new byte[BUFFER_SIZE];
+            try
+            {
+                IPAddress serverAddr = Dns.GetHostEntry(address).AddressList[0];
+                IPEndPoint endPoint = new IPEndPoint(serverAddr, port);
+                _tcpClient = new TcpClient(serverAddr.AddressFamily);
+
+                _connectTimedOut = false;
+                TimerCallback callback = new TimerCallback(ConnnectTimeoutTimerDelegate);
+                _connectTimeoutTimer = new Timer(callback, null, this.ConnectTimeout, this.ConnectTimeout);
+
+                result = _tcpClient.BeginConnect(serverAddr, port, EndConnect, null);
+
+                //https://msdn.microsoft.com/en-us/library/system.iasyncresult%28v=vs.110%29.aspx?f=255&MSPPError=-2147217396
+            }
+            catch (Exception ex)
+            {
+                InvokeOnError(ex);
+            }
+
+            return result;
         }
 
         public void Connect(string address, int port)
@@ -50,15 +96,30 @@ namespace XMPPConnect.Net
                 _connectTimedOut = false;
                 TimerCallback callback = new TimerCallback(ConnnectTimeoutTimerDelegate);
                 _connectTimeoutTimer = new Timer(callback, null, this.ConnectTimeout, this.ConnectTimeout);
-                //_socket.BeginConnect(endPoint, new AsyncCallback(EndConnect), null);
-                _tcpClient.BeginConnect(serverAddr, port, new AsyncCallback(EndConnectTcpClient), null);
-                
-                // https://msdn.microsoft.com/en-us/library/system.iasyncresult%28v=vs.110%29.aspx?f=255&MSPPError=-2147217396
+
+                _tcpClient.Connect(serverAddr, port);
             }
             catch (Exception ex)
             {
                 InvokeOnError(ex);
             }
+        }
+
+        public void Send(string data)
+        {
+            Send(Encoding.UTF8.GetBytes(data));
+            Receive();
+        }
+
+        public void Send(byte[] data)
+        {
+            _networkStream.Write(data, 0, data.Length);
+            Receive();
+        }
+
+        public void Receive()
+        {
+            InvokeOnReceive(_readBuffer, _readBuffer.Length);
         }
 
         public void Disconnect()
@@ -96,7 +157,7 @@ namespace XMPPConnect.Net
         {
             if (_connectTimedOut)
             {
-                InvokeOnError(new Exception("Connect timed out."));
+                InvokeOnError(new Exception("BeginConnect timed out."));
             }
             else
             {
@@ -104,10 +165,11 @@ namespace XMPPConnect.Net
                 {
                     _connectTimeoutTimer.Dispose();
                     _tcpClient.EndConnect(ar);
+                    ar.AsyncWaitHandle.Close();
                     // _networkStream - разделяемый ресурс
                     _networkStream = _tcpClient.GetStream();
                     InvokeOnConnect();
-                    Receive();
+                    BeginReceive();
                 }
                 catch (Exception ex)
                 {
@@ -117,7 +179,7 @@ namespace XMPPConnect.Net
         }
 
         // recieve what?
-        private void Receive()
+        private void BeginReceive()
         {
             _networkStream.BeginRead(_readBuffer, 0, BUFFER_SIZE, new AsyncCallback(EndReceive), null);
         }
@@ -133,7 +195,7 @@ namespace XMPPConnect.Net
 
                     if (Connected)
                     {
-                        Receive();
+                        BeginReceive();
                     }
                 }
                 //else
@@ -147,8 +209,9 @@ namespace XMPPConnect.Net
             }
         }
 
-        public void Send(byte[] data)
+        public IAsyncResult BeginSend(byte[] data)
         {
+            IAsyncResult result = null;
             ClientSocket socket;
             Monitor.Enter(socket = this);
             try
@@ -163,11 +226,11 @@ namespace XMPPConnect.Net
                     _pendingSend = true;
                     try
                     {
-                        _networkStream.BeginWrite(data, 0, data.Length, new AsyncCallback(EndSend), null);
+                        result = _networkStream.BeginWrite(data, 0, data.Length, new AsyncCallback(EndSend), null);
                     }
                     catch (Exception ex)
                     {
-                        this.Disconnect();
+                        //this.Disconnect();
                     }
                 }
             }
@@ -179,21 +242,23 @@ namespace XMPPConnect.Net
             {
                 Monitor.Exit(socket);
             }
+
+            return result;
         }
 
-        public void Send(string data)
+        public IAsyncResult BeginSend(string data)
         {
-            Send(Encoding.UTF8.GetBytes(data));
+            return BeginSend(Encoding.UTF8.GetBytes(data));
         }
 
         private void EndSend(IAsyncResult ar)
         {
             ClientSocket socket;
-            Monitor.Enter(socket = this); // why is not static object lock?
+            Monitor.Enter(socket = this);
             try
             {
-                // 2 actions
                 _networkStream.EndWrite(ar);
+                ar.AsyncWaitHandle.Close();
                 if (_sendQueue.Count > 0)
                 {
                     byte[] buffer = (byte[])_sendQueue.Dequeue();
@@ -213,6 +278,35 @@ namespace XMPPConnect.Net
                 Monitor.Exit(socket);
             }
         }
+
+        //private void EndSend(IAsyncResult ar)
+        //{
+        //    ClientSocket socket;
+        //    Monitor.Enter(socket = this); // why is not static object lock?
+        //    try
+        //    {
+        //        // 2 actions
+        //        _networkStream.EndWrite(ar);
+        //        ar.AsyncWaitHandle.Close();
+        //        if (_sendQueue.Count > 0)
+        //        {
+        //            byte[] buffer = (byte[])_sendQueue.Dequeue();
+        //            _networkStream.BeginWrite(buffer, 0, buffer.Length, new AsyncCallback(EndSend), null);
+        //        }
+        //        else
+        //        {
+        //            _pendingSend = false;
+        //        }
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        Disconnect();
+        //    }
+        //    finally
+        //    {
+        //        Monitor.Exit(socket);
+        //    }
+        //}
 
         #region InvokeEvents
         private void InvokeOnError(Exception ex)
@@ -254,25 +348,6 @@ namespace XMPPConnect.Net
                 OnReceive(this, data, length);
             }
         }
-        #endregion
-
-        #region Properties
-        // свойства обычно лежат вверху
-        public string Address { get { return _address; } set { _address = value; } }
-        public bool Connected
-        {
-            get
-            {
-                if(this._tcpClient == null)
-                {
-                    return false;
-                }
-
-                return this._tcpClient.Connected;
-            }
-        }
-        public int ConnectTimeout { get { return _connectTimeout; } set { _connectTimeout = value; } }
-        public int Port { get { return _port; } set { _port = value; } }
         #endregion
     }
 }

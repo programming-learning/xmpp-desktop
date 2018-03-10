@@ -172,8 +172,8 @@ namespace Tests
         {
             Stream networkStream = clientSocket.GetStream();
             byte[] bytes = new byte[1024];
-            logger.WriteLine("Send:" + message + Environment.NewLine);
-            Console.WriteLine("Send:" + message + Environment.NewLine);
+            logger.WriteLine("BeginSend:" + message + Environment.NewLine);
+            Console.WriteLine("BeginSend:" + message + Environment.NewLine);
             byte[] msg = Encoding.UTF8.GetBytes(message);
             networkStream.Write(msg, 0, msg.Length);
             Thread.Sleep(timeout);

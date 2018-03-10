@@ -24,7 +24,7 @@ namespace XMPPConnect.Tests
             int port = 5222;
 
             ClientSocket client = new ClientSocket();
-            client.Connect(address, port);
+            client.BeginConnect(address, port);
             Thread.Sleep(connectTimeout);
 
             Assert.IsTrue(client.Connected);
@@ -38,7 +38,7 @@ namespace XMPPConnect.Tests
             int port = 5222;
 
             ClientSocket client = new ClientSocket();
-            client.Connect(address, port);
+            client.BeginConnect(address, port);
             Thread.Sleep(connectTimeout);
 
             client.Disconnect();
@@ -64,7 +64,7 @@ namespace XMPPConnect.Tests
 
             XmppClientConnection connection = new XmppClientConnection(
                 new JabberID(jid), password);
-            connection.Log-in();
+            connection.Login();
             Thread.Sleep(waitAuth);
 
             connection.Send(presence);
@@ -95,23 +95,35 @@ namespace XMPPConnect.Tests
             Assert.AreEqual(connection.Port, 5222);
         }
 
+        private static bool authenticated = false;
         [Test]
         public void TestConnectAndAuth()
         {
-            int wait = 5000;
             string jidString = "andrewprok@jabber.ru";
             string password = "newbie52";
 
+
             XmppClientConnection connection = new XmppClientConnection(
                 new JabberID(jidString), password);
-            connection.Login();
-            Thread.Sleep(wait);
+            connection.OnLogin += OnLogin;
+            Thread loginThread = new Thread(connection.Login);
+            loginThread.Start();
+            //connection.Login();
+            while (authenticated != true)
+            {
+
+            }
             // Почему я должен тут ждать и почему 5000? А если я подожду 2000? или 200?
             // 1. Если ты всё-таки должен ждать, то у тебя нигде не видно этого в интерфейсе.
             // 2. Я прихожу к выводу ,что ждать всё-таки не лучшая идея. Тем более неизвестное количество времени.
 
             Assert.IsTrue(connection.Connected);
             Assert.IsTrue(connection.Authenticated);
+        }
+
+        private static void OnLogin(object sender)
+        {
+            authenticated = true;
         }
 
         [Test]

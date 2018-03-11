@@ -19,13 +19,12 @@ namespace XMPPConnect.Tests
         [Test]
         public void TestClientSocketConnect()
         {
-            int connectTimeout = 2000;
             string address = "jabber.ru";
             int port = 5222;
 
             ClientSocket client = new ClientSocket();
-            client.BeginConnect(address, port);
-            Thread.Sleep(connectTimeout);
+            IAsyncResult result = client.BeginConnect(address, port);
+            result.AsyncWaitHandle.WaitOne();
 
             Assert.IsTrue(client.Connected);
         }
@@ -108,14 +107,10 @@ namespace XMPPConnect.Tests
             connection.OnLogin += OnLogin;
             Thread loginThread = new Thread(connection.Login);
             loginThread.Start();
-            //connection.Login();
             while (authenticated != true)
             {
 
             }
-            // Почему я должен тут ждать и почему 5000? А если я подожду 2000? или 200?
-            // 1. Если ты всё-таки должен ждать, то у тебя нигде не видно этого в интерфейсе.
-            // 2. Я прихожу к выводу ,что ждать всё-таки не лучшая идея. Тем более неизвестное количество времени.
 
             Assert.IsTrue(connection.Connected);
             Assert.IsTrue(connection.Authenticated);
@@ -186,20 +181,15 @@ namespace XMPPConnect.Tests
             string msg = "Hello";
             Message message = new Message(from, to, msg);
 
-            int wait = 5000;
             string jidString = "andrewprok@jabber.ru";
             string password = "newbie52";
 
             XmppClientConnection connection = new XmppClientConnection(
                 new JabberID(jidString), password);
             connection.Login();
-            Thread.Sleep(wait);
 
-            connection.Send(presence);
-
+            Assert.DoesNotThrow(() => { connection.Send(presence); });
             Assert.DoesNotThrow(() => { connection.Send(message); });
-            
-            Thread.Sleep(500);
         } 
     }
 }

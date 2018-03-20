@@ -5,7 +5,7 @@
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProjectGuid>{D9821CAB-8758-4CB8-8FED-135895435775}</ProjectGuid>
-    <OutputType>Exe</OutputType>
+    <OutputType>Library</OutputType>
     <RootNamespace>XMPPConnect</RootNamespace>
     <AssemblyName>XMPPConnect</AssemblyName>
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
@@ -34,12 +34,18 @@
     <WarningLevel>4</WarningLevel>
     <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
+  <PropertyGroup>
+    <StartupObject />
+  </PropertyGroup>
   <ItemGroup>
     <Reference Include="Microsoft.Language.Xml, Version=1.0.0.0, Culture=neutral, PublicKeyToken=d8943316a876e00f, processorArchitecture=MSIL">
       <HintPath>..\packages\Microsoft.Language.Xml.1.1.20\lib\netstandard1.3\Microsoft.Language.Xml.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.Win32.Primitives, Version=4.0.2.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
       <HintPath>..\packages\Microsoft.Win32.Primitives.4.3.0\lib\net46\Microsoft.Win32.Primitives.dll</HintPath>
+    </Reference>
+    <Reference Include="NLog, Version=4.0.0.0, Culture=neutral, PublicKeyToken=5120e14c03d0593c, processorArchitecture=MSIL">
+      <HintPath>..\packages\NLog.4.4.13\lib\net45\NLog.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.AppContext, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
@@ -99,22 +105,28 @@
     <Reference Include="System.Data" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="AbstractClasses\XmppConnection.cs" />
+    <Compile Include="Client\Error.cs" />
     <Compile Include="Client\Presence.cs" />
+    <Compile Include="Client\PresenceHandler.cs" />
+    <Compile Include="Data\DataResolveContext.cs" />
+    <Compile Include="Data\IContext.cs" />
     <Compile Include="ErrorHandler.cs" />
     <Compile Include="Helpers\CryptographyHelper.cs" />
     <Compile Include="Helpers\StreamReaderExtensionMethods.cs" />
     <Compile Include="Helpers\HexEncoding.cs" />
     <Compile Include="Helpers\SimpleJSON.cs" />
-    <Compile Include="Interfaces\IXmlPackageCreator.cs" />
-    <Compile Include="Interfaces\IXmlPackageManager.cs" />
-    <Compile Include="Interfaces\IXmppConnection.cs" />
+    <Compile Include="IXmppConnection.cs" />
     <Compile Include="IqGrabber.cs" />
     <Compile Include="JabberID.cs" />
-    <Compile Include="MainClasses\SentItem.cs" />
-    <Compile Include="MainClasses\XmlPackageTemplate.cs" />
-    <Compile Include="MainClasses\XmppClientConnection.cs" />
-    <Compile Include="Managers\XmlPackageCreator.cs" />
+    <Compile Include="Data\SentItem.cs" />
+    <Compile Include="Loggers\NLogger.cs" />
+    <Compile Include="Providers\JsonDataProvider.cs" />
+    <Compile Include="Strategies\ErrorResolver.cs" />
+    <Compile Include="Strategies\IDataResolveStrategy.cs" />
+    <Compile Include="Strategies\MessageResolver.cs" />
+    <Compile Include="Strategies\NoneResolver.cs" />
+    <Compile Include="Strategies\PresenceResolver.cs" />
+    <Compile Include="XmppClientConnection.cs" />
     <Compile Include="Client\Message.cs" />
     <Compile Include="Client\MessageCallback.cs" />
     <Compile Include="MessageGrabber.cs" />
@@ -124,23 +136,19 @@
     <Compile Include="ObjectHandler.cs" />
     <Compile Include="OnSocketDataHandler.cs" />
     <Compile Include="PacketGrabber.cs" />
-    <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Managers\XmlPackageManager.cs" />
-    <Compile Include="Stanza\Stanza.cs" />
-    <Compile Include="Stanza\StanzaManager.cs" />
+    <Compile Include="Data\Stanza.cs" />
+    <Compile Include="Managers\StanzaManager.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />
     <EmbeddedResource Include="JSONs\xmlRequests.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </EmbeddedResource>
-    <None Include="packages.config" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="XMLDocuments\AuthXML.xml">
+    <None Include="NLog.config">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </EmbeddedResource>
+    </None>
+    <None Include="packages.config" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

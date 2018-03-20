@@ -6,10 +6,11 @@ using System.Text;
 using System.Threading.Tasks;
 using XMPPConnect;
 using NUnit.VisualStudio.TestAdapter;
-using XMPPConnect.MainClasses;
 using XMPPConnect.Net;
 using XMPPConnect.Client;
 using System.Threading;
+using XMPPConnect.Data;
+using XMPPConnect.Managers;
 
 namespace XMPPConnect.Tests
 {
@@ -50,7 +51,6 @@ namespace XMPPConnect.Tests
         {
             Presence presence = new Presence(ShowType.Show);
 
-            int waitAuth = 5000;
             int waitMessage = 20000;
             string jid = "andrewprok@jabber.ru";
             string password = "newbie52";
@@ -63,14 +63,13 @@ namespace XMPPConnect.Tests
 
             XmppClientConnection connection = new XmppClientConnection(
                 new JabberID(jid), password);
+            connection.MessageGrabber.Add(
+                jidPartner, new MessageCallback(messageCallback));
+
             connection.Login();
-            Thread.Sleep(waitAuth);
 
             connection.Send(presence);
             connection.Send(message);
-
-            connection.MessageGrabber.Add(
-                jidPartner, new MessageCallback(messageCallback));
 
             Thread.Sleep(waitMessage);
 
@@ -79,7 +78,7 @@ namespace XMPPConnect.Tests
 
         private void messageCallback(object sender, Message message)
         {
-            if(message.Body != null)
+            if (message.Body != null)
             {
                 _partnerMessage = message.From.Full + ":" + message.Body;
             }
@@ -121,46 +120,46 @@ namespace XMPPConnect.Tests
             authenticated = true;
         }
 
-        [Test]
-        public void TestInitMessageWay_1()
-        {
-            JabberID from = new JabberID("andrewprok@jabber.ru");
-            JabberID to = new JabberID("katepleh@jabber.ru");
-            string msg = "Hello";
+        //[Test]
+        //public void TestInitMessageWay_1()
+        //{
+        //    JabberID from = new JabberID("andrewprok@jabber.ru");
+        //    JabberID to = new JabberID("katepleh@jabber.ru");
+        //    string msg = "Hello";
 
-            Message message = new Message(from, to, msg);
+        //    Message message = new Message(from, to, msg);
 
-            Assert.AreEqual(msg, message.Body);
-            Assert.AreEqual(from.Full, message.From.Full);
-            Assert.AreEqual(to.Full, message.To.Full);
-        }
+        //    Assert.AreEqual(msg, message.Body);
+        //    Assert.AreEqual(from.Full, message.From.Full);
+        //    Assert.AreEqual(to.Full, message.To.Full);
+        //}
 
-        [Test]
-        public void TestInitMessageWay_2()
-        {
-            string endPointResponse = "<message type='chat' to='andrewprok@jabber.ru' id='id' from='katepleh@jabber.ru'><body>Oh, hello</body></message>";
+        //[Test]
+        //public void TestInitMessageWay_2()
+        //{
+        //    string endPointResponse = "<message type='chat' to='andrewprok@jabber.ru' id='id' from='katepleh@jabber.ru'><body>Oh, hello</body></message>";
 
-            Message message = new Message(endPointResponse);
+        //    Message message = new Message(endPointResponse);
 
-            Assert.AreEqual("Oh, hello", message.Body);
-            Assert.AreEqual("katepleh@jabber.ru", message.From.Full);
-            Assert.AreEqual("andrewprok@jabber.ru", message.To.Full);
-        }
+        //    Assert.AreEqual("Oh, hello", message.Body);
+        //    Assert.AreEqual("katepleh@jabber.ru", message.From.Full);
+        //    Assert.AreEqual("andrewprok@jabber.ru", message.To.Full);
+        //}
 
-        [Test]
-        public void TestInitMessageWay_3()
-        {
-            JabberID from = new JabberID("andrewprok@jabber.ru");
-            JabberID to = new JabberID("katepleh@jabber.ru");
-            string msg = "Hello";
+        //[Test]
+        //public void TestInitMessageWay_3()
+        //{
+        //    JabberID from = new JabberID("andrewprok@jabber.ru");
+        //    JabberID to = new JabberID("katepleh@jabber.ru");
+        //    string msg = "Hello";
 
-            StanzaManager stanzaManager = new StanzaManager();
-            Message message = new Message(stanzaManager.GetXML(StanzaType.Message, msg, to.Full, from.Full));
+        //    StanzaManager stanzaManager = new StanzaManager();
+        //    Message message = new Message(stanzaManager.GetXML(StanzaType.Message, msg, to.Full, from.Full));
 
-            Assert.AreEqual(msg, message.Body);
-            Assert.AreEqual(from.Full, message.From.Full);
-            Assert.AreEqual(to.Full, message.To.Full);
-        }
+        //    Assert.AreEqual(msg, message.Body);
+        //    Assert.AreEqual(from.Full, message.From.Full);
+        //    Assert.AreEqual(to.Full, message.To.Full);
+        //}
 
         [Test]
         public void TestInitPresence()
@@ -188,8 +187,38 @@ namespace XMPPConnect.Tests
                 new JabberID(jidString), password);
             connection.Login();
 
+            if (!connection.Connected || !connection.Authenticated)
+            {
+                throw new Exception("Not authenticate");
+            }
+
             Assert.DoesNotThrow(() => { connection.Send(presence); });
             Assert.DoesNotThrow(() => { connection.Send(message); });
-        } 
+        }
+
+        [Test]
+        public void TestSendManyMessages()
+        {
+            Presence presence = new Presence(ShowType.Show);
+
+            JabberID from = new JabberID("andrewprok@jabber.ru");
+            JabberID to = new JabberID("katepleh@jabber.ru");
+            string msg = "Hello";
+            Message message = new Message(from, to, msg);
+
+            string jidString = "andrewprok@jabber.ru";
+            string password = "newbie52";
+
+            XmppClientConnection connection = new XmppClientConnection(
+                new JabberID(jidString), password);
+            connection.Login();
+            connection.Send(presence);
+
+            for (int i = 0; i < 500; i++)
+            {
+                Assert.DoesNotThrow(() => { connection.Send(new Message(from, to, i.ToString())); });
+                Thread.Sleep(100);
+            }            
+        }
     }
 }

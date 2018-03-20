@@ -1,10 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using XMPPConnect.Client;
 
 namespace XMPPConnect
 {
-    public delegate void ErrorHanlder(object sender, Exception ex); 
+    public delegate void ErrorHanlder(object sender, Error er); 
 }

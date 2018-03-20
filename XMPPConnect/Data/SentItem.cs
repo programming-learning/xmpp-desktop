@@ -2,11 +2,12 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 
-namespace XMPPConnect.Interfaces
+namespace XMPPConnect.Data
 {
-    interface IXmlPackageManager
+    class SentItem
     {
-        void SendXMLPackage();
+
     }
 }

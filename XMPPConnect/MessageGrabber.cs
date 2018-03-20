@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using XMPPConnect.MainClasses;
+using XMPPConnect;
 using XMPPConnect.Client;
 
 namespace XMPPConnect
@@ -44,9 +44,12 @@ namespace XMPPConnect
                     IDictionaryEnumerator tableEnum = _interlocutors.GetEnumerator();
                     while(tableEnum.MoveNext())
                     {
-                        if(msg.From == new JabberID((string)tableEnum.Key))
+                        if(msg.From.Full == new JabberID((string)tableEnum.Key).Full)
                         {
-                            _messageCB?.Invoke(this, msg);
+                            if (_messageCB != null)
+                            {
+                                _messageCB.Invoke(this, msg);
+                            }                            
                         }
                     }
                 }

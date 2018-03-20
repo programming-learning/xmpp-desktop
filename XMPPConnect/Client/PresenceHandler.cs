@@ -4,10 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace XMPPConnect.AbstractClasses
+namespace XMPPConnect.Client
 {
-    public abstract class XmppConnection
-    {      
-        private int kek;
-    }
+    public delegate void PresenceHandler(object sender, Presence presence);
 }

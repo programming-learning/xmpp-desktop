@@ -9,6 +9,8 @@ using System.IO;
 using System.Collections;
 using System.Net;
 using System.Runtime.InteropServices;
+using XMPPConnect.Client;
+using XMPPConnect.Loggers;
 
 namespace XMPPConnect.Net
 {
@@ -20,7 +22,6 @@ namespace XMPPConnect.Net
         private int _connectTimeout;
         private bool _connectTimedOut;
         private Stream _networkStream; // shared for many purposes
-        private bool _pendingSend; // maybe here is not needed (queue)
         private byte[] _readBuffer;
         private Queue _sendQueue;
         private int _port;
@@ -65,20 +66,20 @@ namespace XMPPConnect.Net
             try
             {
                 IPAddress serverAddr = Dns.GetHostEntry(address).AddressList[0];
-                IPEndPoint endPoint = new IPEndPoint(serverAddr, port);
                 _tcpClient = new TcpClient(serverAddr.AddressFamily);
 
                 _connectTimedOut = false;
-                TimerCallback callback = new TimerCallback(ConnnectTimeoutTimerDelegate);
+                TimerCallback callback = ConnectTimeoutTimerDelegate;
                 _connectTimeoutTimer = new Timer(callback, null, this.ConnectTimeout, this.ConnectTimeout);
 
                 result = _tcpClient.BeginConnect(serverAddr, port, EndConnect, null);
+                result.AsyncWaitHandle.WaitOne();
 
-                //https://msdn.microsoft.com/en-us/library/system.iasyncresult%28v=vs.110%29.aspx?f=255&MSPPError=-2147217396
+                BeginReceive(null);
             }
             catch (Exception ex)
             {
-                InvokeOnError(ex);
+                InvokeOnError(new Error(ex));
             }
 
             return result;
@@ -90,19 +91,21 @@ namespace XMPPConnect.Net
             try
             {
                 IPAddress serverAddr = Dns.GetHostEntry(address).AddressList[0];
-                IPEndPoint endPoint = new IPEndPoint(serverAddr, port);
                 _tcpClient = new TcpClient(serverAddr.AddressFamily);
 
                 _connectTimedOut = false;
-                TimerCallback callback = new TimerCallback(ConnnectTimeoutTimerDelegate);
+                TimerCallback callback = ConnectTimeoutTimerDelegate;
                 _connectTimeoutTimer = new Timer(callback, null, this.ConnectTimeout, this.ConnectTimeout);
 
                 _tcpClient.Connect(serverAddr, port);
+                _connectTimeoutTimer.Dispose();
                 _networkStream = _tcpClient.GetStream();
+                InvokeOnConnect();
+
             }
             catch (Exception ex)
             {
-                InvokeOnError(ex);
+                InvokeOnError(new Error(ex));
             }
         }
 
@@ -113,100 +116,113 @@ namespace XMPPConnect.Net
 
         public void Send(byte[] data)
         {
-            _networkStream.Write(data, 0, data.Length);
+            lock (this)
+            {
+                _networkStream.Write(data, 0, data.Length);
+            }
+            
             Receive();
         }
 
         public void Receive()
         {
-            _networkStream.Read(_readBuffer, 0, BUFFER_SIZE);
+            _networkStream.Read(_readBuffer, 0, BUFFER_SIZE);          
             InvokeOnReceive(_readBuffer, _readBuffer.Length);
+        }
+
+        public void StartReceive()
+        {
+            BeginReceive(null);
         }
 
         public void Disconnect()
         {
             lock (this)
             {
-                _pendingSend = false;
                 _sendQueue.Clear();
             }
 
             if (_tcpClient != null)
             {
-
                 try
                 {
                     _tcpClient.Close();
                 }
                 catch (Exception ex)
                 {
-                    InvokeOnError(ex);
+                    InvokeOnError(new Error(ex));
                 }
 
                 InvokeOnDisconnect();
             }
         }
 
-        private void ConnnectTimeoutTimerDelegate(object stateinfo)
+        private void ConnectTimeoutTimerDelegate(object stateinfo)
         {
             _connectTimeoutTimer.Dispose();
             _connectTimedOut = true;
             _tcpClient.Close();
+            InvokeOnError(new Error(new Exception("Сonnect timed out.")));
         }
 
         private void EndConnect(IAsyncResult ar)
         {
-            if (_connectTimedOut)
-            {
-                InvokeOnError(new Exception("BeginConnect timed out."));
-            }
-            else
+            if(!_connectTimedOut)
             {
                 try
                 {
                     _connectTimeoutTimer.Dispose();
                     _tcpClient.EndConnect(ar);
-                    ar.AsyncWaitHandle.Close();
                     // _networkStream - разделяемый ресурс
                     _networkStream = _tcpClient.GetStream();
+                    ar.AsyncWaitHandle.Close();
                     InvokeOnConnect();
-                    BeginReceive();
                 }
                 catch (Exception ex)
                 {
-                    InvokeOnError(ex);
+                    InvokeOnError(new Error(ex));
                 }
             }
         }
 
-        // recieve what?
-        private void BeginReceive()
+        private void BeginReceive(IAsyncResult ar)
         {
-            _networkStream.BeginRead(_readBuffer, 0, BUFFER_SIZE, new AsyncCallback(EndReceive), null);
-        }
-
-        private void EndReceive(IAsyncResult ar)
-        {
-            try
+            if (ar != null)
             {
-                int length = _networkStream.EndRead(ar);
-                if (length > 0)
+                try
                 {
-                    InvokeOnReceive(_readBuffer, length);
-
-                    if (Connected)
+                    int length = _networkStream.EndRead(ar);
+                    if (length > 0)
                     {
-                        BeginReceive();
+                        InvokeOnReceive(_readBuffer, length);
+
+                        if (Connected)
+                        {
+                            lock (this)
+                            {
+                                _networkStream.BeginRead(_readBuffer, 0, BUFFER_SIZE, BeginReceive, null);
+                            }                           
+                        }
+                    }
+                    //else
+                    //{
+                    //    Disconnect();
+                    //}
+                }
+                catch (Exception ex)
+                {
+                    InvokeOnError(new Error(ex));
+                }
+            }
+            else
+            {
+                if (Connected)
+                {
+                    lock (this)
+                    {
+                        _networkStream.BeginRead(_readBuffer, 0, BUFFER_SIZE, BeginReceive, null);
                     }
                 }
-                //else
-                //{
-                //    Disconnect();
-                //}
-            }
-            catch (Exception ex)
-            {
-                 // todo ?
             }
         }
 
@@ -217,27 +233,21 @@ namespace XMPPConnect.Net
             Monitor.Enter(socket = this);
             try
             {
-                InvokeOnSend(data, data.Length);
-                if (_pendingSend)
+                _sendQueue.Enqueue(data);
+                while (_sendQueue.Count != 0)
                 {
-                    _sendQueue.Enqueue(data);
-                }
-                else
-                {
-                    _pendingSend = true;
-                    try
+                    byte[] buffer = (byte[])_sendQueue.Dequeue();
+                    lock (this)
                     {
-                        result = _networkStream.BeginWrite(data, 0, data.Length, new AsyncCallback(EndSend), null);
+                        result = _networkStream.BeginWrite(buffer, 0, buffer.Length, EndSend, null);
                     }
-                    catch (Exception ex)
-                    {
-                        //this.Disconnect();
-                    }
-                }
+                    
+                    InvokeOnSend(data, data.Length);
+                }             
             }
             catch (Exception ex)
             {
-                // todo ?
+                InvokeOnError(new Error(ex));
             }
             finally
             {
@@ -258,17 +268,11 @@ namespace XMPPConnect.Net
             Monitor.Enter(socket = this);
             try
             {
-                _networkStream.EndWrite(ar);
+                lock (this)
+                {
+                    _networkStream.EndWrite(ar);
+                }
                 ar.AsyncWaitHandle.Close();
-                if (_sendQueue.Count > 0)
-                {
-                    byte[] buffer = (byte[])_sendQueue.Dequeue();
-                    _networkStream.BeginWrite(buffer, 0, buffer.Length, new AsyncCallback(EndSend), null);
-                }
-                else
-                {
-                    _pendingSend = false;
-                }
             }
             catch (Exception ex)
             {
@@ -280,41 +284,13 @@ namespace XMPPConnect.Net
             }
         }
 
-        //private void EndSend(IAsyncResult ar)
-        //{
-        //    ClientSocket socket;
-        //    Monitor.Enter(socket = this); // why is not static object lock?
-        //    try
-        //    {
-        //        // 2 actions
-        //        _networkStream.EndWrite(ar);
-        //        ar.AsyncWaitHandle.Close();
-        //        if (_sendQueue.Count > 0)
-        //        {
-        //            byte[] buffer = (byte[])_sendQueue.Dequeue();
-        //            _networkStream.BeginWrite(buffer, 0, buffer.Length, new AsyncCallback(EndSend), null);
-        //        }
-        //        else
-        //        {
-        //            _pendingSend = false;
-        //        }
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        Disconnect();
-        //    }
-        //    finally
-        //    {
-        //        Monitor.Exit(socket);
-        //    }
-        //}
-
         #region InvokeEvents
-        private void InvokeOnError(Exception ex)
+        private void InvokeOnError(Error er)
         {
             if (OnError != null)
             {
-                OnError(this, ex);
+                NLogger.Log.Error(er.Source + "//" + "Exception:" + er.Message);
+                OnError(this, er);
             }
         }
 
@@ -322,6 +298,7 @@ namespace XMPPConnect.Net
         {
             if (OnDisconnect != null)
             {
+                NLogger.Log.Info(this.GetType() + "//" + "OnDisconnect");
                 OnDisconnect(this);
             }
         }
@@ -330,6 +307,7 @@ namespace XMPPConnect.Net
         {
             if (OnConnect != null)
             {
+                NLogger.Log.Info(this.GetType() + "//" + "OnConnect");
                 OnConnect(this);
             }
         }
@@ -338,6 +316,7 @@ namespace XMPPConnect.Net
         {
             if (OnSend != null)
             {
+                NLogger.Log.Info(this.GetType() + "//" + "Send:" + Encoding.UTF8.GetString(data));
                 OnSend(this, data, length);
             }
         }
@@ -346,6 +325,7 @@ namespace XMPPConnect.Net
         {
             if (OnReceive != null)
             {
+                NLogger.Log.Info(this.GetType() + "//" + "Receive:" + Encoding.UTF8.GetString(data));
                 OnReceive(this, data, length);
             }
         }

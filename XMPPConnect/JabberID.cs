@@ -13,6 +13,7 @@ namespace XMPPConnect
         private string _jid;
         private string _user;
         private string _server;
+        private string _nonce;
         private string _validatePattern;
 
         public JabberID(string jid)
@@ -27,7 +28,17 @@ namespace XMPPConnect
             {
                 string[] jidDataArr = jid.Split('@');
                 _user = jidDataArr[0];
-                _server = jidDataArr[1];
+                if (jidDataArr[1].Contains("/"))
+                {
+                    _server = jidDataArr[1].Split('/')[0];
+                    _nonce = jidDataArr[1].Split('/')[1];
+                }
+                else
+                {
+                    _server = jidDataArr[1];
+                    _nonce = string.Empty;
+                }
+
                 _jid = jid;
             }
             else
@@ -69,6 +80,14 @@ namespace XMPPConnect
             get
             {
                 return _jid = _user + "@" + _server;
+                //if (string.IsNullOrEmpty(_nonce))
+                //{
+                //    return _jid = _user + "@" + _server;
+                //}
+                //else
+                //{
+                //    return _jid = _user + "@" + _server + "/" + _nonce;
+                //}
             }
             set { _jid = value; }
         }

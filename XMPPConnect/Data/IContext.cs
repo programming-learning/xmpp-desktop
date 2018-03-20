@@ -4,10 +4,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace XMPPConnect.MainClasses
+namespace XMPPConnect.Data
 {
-    class SentItem
+    internal interface IContext
     {
-
+        void Execute(object sender, object data);
     }
 }

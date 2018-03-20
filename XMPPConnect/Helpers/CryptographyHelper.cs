@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Microsoft.Language.Xml;
 using System.Text.RegularExpressions;
 using System.Security.Cryptography;
+using XMPPConnect.Managers;
 
 namespace XMPPConnect.Helpers
 {

@@ -11,11 +11,6 @@ namespace XMPPConnect.Managers
 {
     internal class StanzaManager
     {
-        public StanzaManager()
-        {
-            
-        }
-
         public string GetXML(StanzaType type, string data = null, string to = null, string from = null)
         {
             var stanza = new Stanza(type);
@@ -26,7 +21,7 @@ namespace XMPPConnect.Managers
 
         public Stanza GetStanzaObject(string xmlString)
         {
-            Stanza result = new Stanza();
+            Stanza result = new None();
             if (xmlString.Contains("message"))
             {
                 result = new Message(xmlString);

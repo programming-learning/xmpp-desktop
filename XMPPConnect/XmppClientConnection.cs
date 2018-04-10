@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Net.Sockets;
+using System.Threading.Tasks;
 using XMPPConnect.Net;
 using XMPPConnect.Helpers;
 using XMPPConnect.Client;
@@ -21,12 +22,14 @@ namespace XMPPConnect
         private JabberID _jid;
         private ClientSocket _clientSocket;
         private StanzaManager _stanzaManager;
+        private int _port;
         private bool _authenticated;
         private bool _connected;
         private string _response;
         private string _request;
         private string _errorMessage;
         private string _password;
+        private string _server;
         private StreamWriter _clientServerLogger;
         private DataResolveContext _dataResolveContext;
         private Dictionary<StanzaType, IDataResolveStrategy> _dictDataResolveStrategies;
@@ -37,11 +40,20 @@ namespace XMPPConnect
         public event PresenceHandler OnPresence;
         public event MessageHandler OnMessage;
 
-        public MessageGrabber _messageGrabber;
+        private MessageGrabber _messageGrabber;
 
         #region Properties
-        public string Server { get; set; }
-        public int Port { get; set; }
+
+        public string Server
+        {
+            get { return _server; }
+            private set { _server = value; }
+        }
+        public int Port
+        {
+            get { return _port; }
+            private set { _port = value; }
+        }
         public bool Authenticated { get { return _authenticated; } }
         public bool Connected { get { return _clientSocket.Connected; } }
         public MessageGrabber MessageGrabber { get { return _messageGrabber; } }
@@ -61,17 +73,14 @@ namespace XMPPConnect
         }
         #endregion
 
-        public XmppClientConnection()
+        public XmppClientConnection(int connectTimeout = 30000, int port = 5222)
         {
-            NLogger.InitLogger();
-            _dictDataResolveStrategies = new Dictionary<StanzaType, IDataResolveStrategy>();
-            InitSocket();
-            InitDictionaries();
+            _dictDataResolveStrategies = InitDictionaries();
+            _clientSocket = InitSocket(connectTimeout);
             _stanzaManager = new StanzaManager();
             _authenticated = false;
             _connected = false;
-            _clientServerLogger = new StreamWriter("logClientServer.txt");
-            Port = 5222;
+            _port = port;
             _messageGrabber = new MessageGrabber(this);
         }
 
@@ -79,12 +88,11 @@ namespace XMPPConnect
         {
             _jid = jid;
             _password = password;
-            Server = jid.Server;
+            _server = jid.Server;
         }
 
         public void Login()
         {
-            IAsyncResult asyncResult = null;
             if (string.IsNullOrEmpty(Server))
             {
                 throw new ArgumentException("Server was not assign.");
@@ -119,21 +127,20 @@ namespace XMPPConnect
                     InvokeOnLogin();
                 }
 
-                _clientServerLogger.Close();
-
                 _clientSocket.StartReceive();
-                // Test presence and message
-
-                //string presence = _stanzaManager.GetXML(StanzaType.Presence);
-                //_clientSocket.BeginSend(presence);
-
-                //Message message = new Message(_jid.ToString(), "katepleh@jabber.ru","Hello");
-                //_clientSocket.BeginSend(message.ToString());
             }
             catch (Exception ex)
             {
                 InvokeOnError(new Error(ex));
             }
+        }
+
+        public async Task LoginAsync()
+        {
+            await Task.Run(() =>
+            {
+                Login();
+            });
         }
 
         private void WaitChallenge()
@@ -168,22 +175,27 @@ namespace XMPPConnect
             }
         }
 
-        private void InitSocket()
+        private ClientSocket InitSocket(int connectTimeout)
         {
-            _clientSocket = new ClientSocket();
-            _clientSocket.OnSend += ClientSocketOnSend;
-            _clientSocket.OnReceive += ClientSocketOnReceive;
-            _clientSocket.OnConnect += ClientSocketOnConnect;
-            _clientSocket.OnDisconnect += ClientSocketOnDisconnect;
-            _clientSocket.OnError += ClientSocketOnError;
+            var socket = new ClientSocket(connectTimeout);
+            socket.OnSend += ClientSocketOnSend;
+            socket.OnReceive += ClientSocketOnReceive;
+            socket.OnConnect += ClientSocketOnConnect;
+            socket.OnDisconnect += ClientSocketOnDisconnect;
+            socket.OnError += ClientSocketOnError;
+            return socket;
         }
 
-        private void InitDictionaries()
+        private Dictionary<StanzaType, IDataResolveStrategy> InitDictionaries()
         {
-            _dictDataResolveStrategies.Add(StanzaType.Message, new MessageResolver());
-            _dictDataResolveStrategies.Add(StanzaType.Presence, new PresenceResolver());
-            _dictDataResolveStrategies.Add(StanzaType.Error, new ErrorResolver());
-            _dictDataResolveStrategies.Add(StanzaType.None, new NoneResolver());
+            var dict = new Dictionary<StanzaType, IDataResolveStrategy>();
+
+            dict.Add(StanzaType.Message, new MessageResolver());
+            dict.Add(StanzaType.Presence, new PresenceResolver());
+            dict.Add(StanzaType.Error, new ErrorResolver());
+            dict.Add(StanzaType.None, new NoneResolver());
+
+            return dict;
         }
 
         #region Client Socket event handlers
@@ -192,13 +204,7 @@ namespace XMPPConnect
         {
             _request = Encoding.UTF8.GetString(data, 0, length);
 
-            Stanza requestObject = _stanzaManager.GetStanzaObject(_request);
-
-            _dataResolveContext = new DataResolveContext(
-                _dictDataResolveStrategies[requestObject.Type]);
-
-            _dataResolveContext.Execute(this, requestObject);
-
+            ResolveData(_request);
             //NLogger.Log.Info(this.GetType() + "//" + "Send:" + _request);
         }
 
@@ -206,7 +212,18 @@ namespace XMPPConnect
         {
             Response = Encoding.UTF8.GetString(data);
 
+            ResolveData(Response);
             //NLogger.Log.Info(this.GetType() + "//" + "Response:" + Response);
+        }
+
+        private void ResolveData(string xmlData)
+        {
+            Stanza requestObject = _stanzaManager.GetStanzaObject(xmlData);
+
+            _dataResolveContext = new DataResolveContext(
+                _dictDataResolveStrategies[requestObject.Type]);
+
+            _dataResolveContext.Execute(this, requestObject);
         }
 
         private void ClientSocketOnConnect(object sender)
@@ -217,14 +234,14 @@ namespace XMPPConnect
         private void ClientSocketOnDisconnect(object sender)
         {
             //_connected = false;
-            
+
             _authenticated = false;
         }
 
         private void ClientSocketOnError(object sender, Error er)
         {
             _errorMessage = er.Message;
-           
+
             InvokeOnError(er);
         }
         #endregion

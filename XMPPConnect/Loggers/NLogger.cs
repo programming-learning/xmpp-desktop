@@ -12,12 +12,15 @@ namespace XMPPConnect.Loggers
 
         public static ILogger Log
         {
-            get { return _log; }
-        }
+            get
+            {
+                if(_log == null)
+                {
+                    _log = NLog.LogManager.GetCurrentClassLogger();
+                }
 
-        public static void InitLogger()
-        {
-            _log = NLog.LogManager.GetCurrentClassLogger();
+                return _log;
+            }
         }
     }
 }

@@ -89,7 +89,10 @@ namespace XMPPConnect
                 //    return _jid = _user + "@" + _server + "/" + _nonce;
                 //}
             }
-            set { _jid = value; }
+            set
+            {
+                Init(value);      
+            }
         }
     }
 }

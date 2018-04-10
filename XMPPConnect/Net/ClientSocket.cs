@@ -53,9 +53,9 @@ namespace XMPPConnect.Net
         public int Port { get { return _port; } set { _port = value; } }
         #endregion
 
-        public ClientSocket()
+        public ClientSocket(int connectTimeout = 30000)
         {
-            _connectTimeout = 30000;
+            _connectTimeout = connectTimeout;
             _sendQueue = new Queue();
         }
 
@@ -73,7 +73,7 @@ namespace XMPPConnect.Net
                 _connectTimeoutTimer = new Timer(callback, null, this.ConnectTimeout, this.ConnectTimeout);
 
                 result = _tcpClient.BeginConnect(serverAddr, port, EndConnect, null);
-                result.AsyncWaitHandle.WaitOne();
+                //result.AsyncWaitHandle.WaitOne();
 
                 BeginReceive(null);
             }
@@ -308,6 +308,7 @@ namespace XMPPConnect.Net
             if (OnConnect != null)
             {
                 NLogger.Log.Info(this.GetType() + "//" + "OnConnect");
+                NLogger.Log.Trace(this.GetType() + "//" + "OnConnect");
                 OnConnect(this);
             }
         }

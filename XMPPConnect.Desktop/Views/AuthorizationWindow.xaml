@@ -1,0 +1,27 @@
+﻿<Window x:Class="XMPPConnect.Desktop.Views.AuthorizationWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:XMPPConnect.Desktop"
+        xmlns:viewModels="clr-namespace:XMPPConnect.Desktop.ViewModels"
+        mc:Ignorable="d"
+        Title="AuthorizationWindow" Height="215.121" Width="224.512">
+    <Window.DataContext>
+        <viewModels:MainWindowViewModel></viewModels:MainWindowViewModel>
+    </Window.DataContext>
+    <StackPanel Margin="5" Orientation="Vertical">
+        <StackPanel Margin="5" Orientation="Horizontal">
+            <Label Padding="15" HorizontalAlignment="Left">JabberId:</Label>
+            <TextBox Padding="5" HorizontalAlignment="Stretch" Width="120" Text="{Binding LoginForm.Jid, Mode=OneWayToSource}"></TextBox>
+        </StackPanel>
+        <StackPanel Margin="5" Orientation="Horizontal">
+            <Label Padding="15" HorizontalAlignment="Left">Пароль:</Label>
+            <!--<PasswordBox Padding="5" HorizontalAlignment="Stretch" Width="120" Password="{Binding CurrentClient.Password, Mode=OneWayToSource}"></PasswordBox>-->
+            <TextBox Padding="5" HorizontalAlignment="Stretch" Width="120" Text="{Binding LoginForm.Password, Mode=OneWayToSource}"></TextBox>
+        </StackPanel>
+
+        <Button Margin="10" HorizontalAlignment="Center" Padding="5" Command="{Binding LoginCommand}">Логин</Button>
+    </StackPanel>
+</Window>
+

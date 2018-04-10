@@ -1,0 +1,87 @@
+﻿<Window x:Name="mainWindow" x:Class="XMPPConnect.Desktop.Views.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:mui="clr-namespace:FirstFloor.ModernUI.Windows.Controls;assembly=FirstFloor.ModernUI"
+        xmlns:local="clr-namespace:XMPPConnect.Desktop.Views"
+        xmlns:viewModels="clr-namespace:XMPPConnect.Desktop.ViewModels"
+        mc:Ignorable="d"
+        Title="Jabber Client" Height="545.991" Width="1092.13"
+        xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+        FontFamily="pack://application:,,,/MaterialDesignThemes.Wpf;component/Resources/Roboto/#Roboto"
+        TextElement.Foreground="{DynamicResource MaterialDesignBodyLight}"
+        TextElement.FontWeight="Medium"
+        TextElement.FontSize="13"
+        TextOptions.TextFormattingMode="Ideal"
+        TextOptions.TextRenderingMode="Auto"
+        Background="AliceBlue">
+    <Window.DataContext>
+        <viewModels:MainWindowViewModel></viewModels:MainWindowViewModel>
+    </Window.DataContext>
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition></RowDefinition>
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="340"></ColumnDefinition>
+            <ColumnDefinition Width="2"></ColumnDefinition>
+            <ColumnDefinition Width="600*"></ColumnDefinition>
+        </Grid.ColumnDefinitions>
+
+        <DockPanel Grid.Column="0">
+            <StackPanel DockPanel.Dock="Top" Orientation="Horizontal">
+                <TextBox x:Name="User" Width="180" Margin="10"/>
+                <Button Background="LightBlue" BorderBrush="LightSkyBlue"
+                        IsEnabled="{Binding ConnectionState.Connected, Mode=OneWay}"
+                        Padding="5" Content="Добавить контакт" Command="{Binding AddContactCommand}"
+                        CommandParameter="{Binding ElementName=User, Path=Text}"/>
+            </StackPanel>
+            <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal">
+                <Label Margin="5">Текущий собеседник:</Label>
+                <TextBlock x:Name="PartnerJid" TextWrapping="Wrap" Margin="2" Padding="8" Text="{Binding ElementName=ContactsBox, Path=SelectedItem}"></TextBlock>
+            </StackPanel>
+
+            <Button Background="LightBlue" BorderBrush="LightSkyBlue"
+                    DockPanel.Dock="Right"
+                    IsEnabled="{Binding ConnectionState.Connected}"
+                    VerticalAlignment="Top" Content="Удалить"
+                    Width="100"
+                    Margin="10"
+                    Command="{Binding RemoveContactCommand}"
+                    CommandParameter="{Binding ElementName=ContactsBox, Path=SelectedIndex}"/>
+            <ListBox x:Name="ContactsBox" Margin="5" ItemsSource="{Binding Contacts}" SelectedItem="{Binding CurrentConversation.PartnerJid, Mode=OneWayToSource}"/>
+        </DockPanel>
+
+        <Rectangle Grid.Column="1" Fill="LightBlue" Margin="0,5,0,5"></Rectangle>
+
+        <DockPanel Grid.Column="2">
+            <StackPanel DockPanel.Dock="Top" Orientation="Horizontal">
+                <Label Padding="15">Текущий пользователь:</Label>
+                <TextBlock Margin="5,15,5,5" Text="{Binding CurrentClient.JabberId.Username, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}"/>
+                <Button Background="LightBlue" BorderBrush="LightSkyBlue" Margin="50,5,5,5" Padding="5" Content="Авторизация" 
+                        Command="{Binding OpenAuthorizationWindowCommand}"
+                        CommandParameter="{Binding ElementName=mainWindow}"></Button>
+            </StackPanel>
+            <!--<ComboBox DockPanel.Dock="Left" Width="27" Margin="0,5,5,5"/>-->
+            <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal">
+                <TextBox VerticalScrollBarVisibility="Visible" AcceptsReturn="True" Margin="10" TextWrapping="Wrap" ToolTip="Введите сообщение"
+                         Text="{Binding CurrentConversation.MessageToSend, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                         Width="400" MinHeight="50" Name="InputField"
+                         IsEnabled = "{Binding ConnectionState.Connected}">
+                    <TextBox.InputBindings>
+                        <KeyBinding Gesture="Enter"
+                                    Command="{Binding SendMessageCommand}"
+                                    CommandParameter="{Binding ElementName=ContactsBox, Path=SelectedIndex}"/>
+                    </TextBox.InputBindings>
+                </TextBox>
+                <!--<TextBox Text="{Binding PartnerJid, Mode=OneWayToSource, UpdateSourceTrigger=LostFocus}" Name="partnerJid" Margin="5" Height="20" Width="60" HorizontalAlignment="Stretch"></TextBox>-->
+            </StackPanel>
+            <TextBox Foreground="Black" AcceptsReturn="True" TextChanged="ChatField_OnTextChanged"
+                     Text="{Binding CurrentConversation.ChatField, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                     TextWrapping="Wrap" Name="ChatField" Margin="10" IsReadOnly="True"
+                     Background="Cyan"></TextBox>
+        </DockPanel>
+    </Grid>
+</Window>
+

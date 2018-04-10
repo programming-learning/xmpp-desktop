@@ -9,8 +9,6 @@ namespace XMPPConnect
 {
     public interface IXmppConnection
     {
-        string Server { get; set; }
-        int Port { get; set; }
         bool Authenticated { get; }
 
         void Login();

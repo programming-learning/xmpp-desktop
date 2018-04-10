@@ -9,5 +9,5 @@
     "chat": "<presence><show>chat</show></presence>",
     "away": "<presence><show>away</show></presence>"
   },
-  "message": "<message type='chat' to='%TO%' id='id' from='%FROM%'><body>%DATA%</body></message>"
+  "message": "<message from='%FROM%' to='%TO%' xml:lang='ru' id='id' type='chat'><body>%DATA%</body></message>"
 }

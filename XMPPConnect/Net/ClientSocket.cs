@@ -120,7 +120,8 @@ namespace XMPPConnect.Net
             {
                 _networkStream.Write(data, 0, data.Length);
             }
-            
+
+            InvokeOnSend(data, data.Length);
             Receive();
         }
 
@@ -308,7 +309,6 @@ namespace XMPPConnect.Net
             if (OnConnect != null)
             {
                 NLogger.Log.Info(this.GetType() + "//" + "OnConnect");
-                NLogger.Log.Trace(this.GetType() + "//" + "OnConnect");
                 OnConnect(this);
             }
         }

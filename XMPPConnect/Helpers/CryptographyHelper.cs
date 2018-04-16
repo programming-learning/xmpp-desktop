@@ -12,13 +12,13 @@ namespace XMPPConnect.Helpers
 {
     public static class CryptographyHelper
     {
-        private const string _nc = "00000001";
-        private const string _qop = "auth";
-        private const string _realm = "jabber.ru";
-        private const string _digestUri = "xmpp/jabber.ru";
+        private static string _nc = "00000001";
+        private static string _qop = "auth";
 
         public static string DigestMD5AuthAlgo(string xml, JabberID jid, string password)
         {
+            var realm = jid.Server;
+            var digestUri = "xmpp/" + jid.Server;
             string uniqData = StanzaManager.ParseChallenge(xml);
             Regex reg = new Regex("nonce=\"[0-9]*\"");
             Match m = reg.Match(uniqData);
@@ -29,22 +29,22 @@ namespace XMPPConnect.Helpers
                 nonce = nonce.Replace("nonce=\"", "").Replace("\"", "");
             }
 
-            string cNonce = Environment.MachineName;//GetUniqCNonce();
-            string clientHash = GenerateClientHash(jid.Username, password, nonce, cNonce);
-            string value = GetAuthenticationString(jid.Username, password, nonce, cNonce, clientHash);
+            string cNonce = Environment.MachineName; //GetUniqCNonce();
+            string clientHash = GenerateClientHash(jid.Username, password, nonce, cNonce, realm, digestUri);
+            string value = GetAuthenticationString(jid.Username, password, nonce, cNonce, clientHash, realm, digestUri);
 
             string baseResponse = Convert.ToBase64String(Encoding.UTF8.GetBytes(value));
 
             return baseResponse;
         }
 
-        private static string GenerateClientHash(string username, string password, string nonce, string cNonce)
+        private static string GenerateClientHash(string username, string password, string nonce, string cNonce, string realm, string digestUri)
         {
-            byte[] h1 = H(Encoding.UTF8.GetBytes(string.Format($"{username}:{_realm}:{password}")));
+            byte[] h1 = H(Encoding.UTF8.GetBytes(string.Format($"{username}:{realm}:{password}")));
             byte[] h2 = Encoding.UTF8.GetBytes($":{nonce}:{cNonce}");
 
             byte[] A1 = Merge(h1, h2);
-            byte[] A2 = Encoding.UTF8.GetBytes(string.Format($"AUTHENTICATE:{_digestUri}"));
+            byte[] A2 = Encoding.UTF8.GetBytes(string.Format($"AUTHENTICATE:{digestUri}"));
 
             byte[] responseValue = HEX(KD(HEX(H(A1)), Merge(Encoding.UTF8.GetBytes($"{nonce}:{_nc}:{cNonce}:{_qop}:"), HEX(H(A2)))
                 ));
@@ -57,14 +57,6 @@ namespace XMPPConnect.Helpers
         {
             string result = string.Empty;
 
-            //result += username.GetHashCode();
-            //foreach (var c in username)
-            //{
-            //    result += (char)((int)c);
-            //}
-
-            //result += password.GetHashCode();
-
             RandomNumberGenerator generator = RandomNumberGenerator.Create();
             byte[] data = new byte[8];
             generator.GetBytes(data);
@@ -72,16 +64,16 @@ namespace XMPPConnect.Helpers
             return HexEncoding.ToString(data).ToLower();
         }
 
-        private static string GetAuthenticationString(string username, string password, string nonce, string cNonce, string response)
+        private static string GetAuthenticationString(string username, string password, string nonce, string cNonce, string response, string realm, string digestUri)
         {
             StringBuilder res = new StringBuilder();
             res.Append("username=\"" + username + "\"," +
-                       "realm=\"" + "jabber.ru" + "\"," +
+                       "realm=\"" + realm + "\"," +
                        "nonce=\"" + nonce + "\"," +
                        "cnonce=\"" + cNonce + "\"," +
                        "nc=\"" + "00000001" + "\"," +
                        "qop=\"" + "auth" + "\"," +
-                       "digest-uri=\"" + "xmpp/jabber.ru" + "\"," +
+                       "digest-uri=\"" + digestUri + "\"," +
                        "charset=\"" + "utf-8" + "\"," +
                        "response=\"" + response + "\"");
             return res.ToString();

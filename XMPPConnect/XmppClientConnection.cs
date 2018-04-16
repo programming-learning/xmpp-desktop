@@ -13,7 +13,6 @@ using XMPPConnect.Managers;
 using XMPPConnect.Strategies;
 using XMPPConnect.Loggers;
 using NLog;
-using Logger = NLog.Logger;
 
 namespace XMPPConnect
 {
@@ -57,6 +56,7 @@ namespace XMPPConnect
         public bool Authenticated { get { return _authenticated; } }
         public bool Connected { get { return _clientSocket.Connected; } }
         public MessageGrabber MessageGrabber { get { return _messageGrabber; } }
+
         private string Response
         {
             get

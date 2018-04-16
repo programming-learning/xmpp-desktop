@@ -3,6 +3,7 @@ using agsXMPP;
 using agsXMPP.protocol.client;
 using agsXMPP.Collections;
 using System.Threading;
+using agsXMPP.protocol.iq.roster;
 
 namespace XMPP_client
 {

@@ -80,7 +80,7 @@
             <TextBox Foreground="Black" AcceptsReturn="True" TextChanged="ChatField_OnTextChanged"
                      Text="{Binding CurrentConversation.ChatField, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                      TextWrapping="Wrap" Name="ChatField" Margin="10" IsReadOnly="True"
-                     Background="Cyan"></TextBox>
+                     Background="LightCyan"></TextBox>
         </DockPanel>
     </Grid>
 </Window>

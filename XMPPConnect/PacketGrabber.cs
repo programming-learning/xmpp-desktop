@@ -11,22 +11,22 @@ namespace XMPPConnect
     public abstract class PacketGrabber
     {
         protected IXmppConnection _connection;
-        protected Hashtable _interlocutors;
+        protected Hashtable _data;
 
         public PacketGrabber(IXmppConnection conn)
         {
             _connection = conn;
-            _interlocutors = new Hashtable();
+            _data = new Hashtable();
         }
 
         public void Clear()
         {
-            _interlocutors.Clear();
+            _data.Clear();
         }
 
         public void Remove(JabberID jid)
         {
-            _interlocutors.Remove(jid.ToString());
+            _data.Remove(jid.ToString());
         }
     }
 }

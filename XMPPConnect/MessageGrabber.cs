@@ -19,9 +19,9 @@ namespace XMPPConnect
 
         public void Add(JabberID jid, MessageCallback callback)
         {
-            lock(_interlocutors)
+            lock(_data)
             {
-                if(_interlocutors.ContainsKey(jid.ToString()))
+                if(_data.ContainsKey(jid.ToString()))
                 {
                     return;
                 }
@@ -29,9 +29,9 @@ namespace XMPPConnect
 
             _messageCB += callback;
             
-            lock(_interlocutors)
+            lock(_data)
             {
-                _interlocutors.Add(jid.ToString(), null);
+                _data.Add(jid.ToString(), null);
             }
         }
 
@@ -39,9 +39,9 @@ namespace XMPPConnect
         {
             if(msg != null)
             {
-                lock(_interlocutors)
+                lock(_data)
                 {
-                    IDictionaryEnumerator tableEnum = _interlocutors.GetEnumerator();
+                    IDictionaryEnumerator tableEnum = _data.GetEnumerator();
                     while(tableEnum.MoveNext())
                     {
                         if(msg.From.Full == new JabberID((string)tableEnum.Key).Full)

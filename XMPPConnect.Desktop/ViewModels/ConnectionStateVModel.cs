@@ -5,9 +5,9 @@ using System.Text;
 using System.Threading.Tasks;
 using Prism.Mvvm;
 
-namespace XMPPConnect.Desktop.Models
+namespace XMPPConnect.Desktop.ViewModels
 {
-    public class ConnectionState : BindableBase
+    public class ConnectionStateVModel : BindableBase
     {
         private bool _connected;
 

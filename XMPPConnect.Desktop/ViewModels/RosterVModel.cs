@@ -6,15 +6,15 @@ using System.Text;
 using System.Threading.Tasks;
 using Prism.Mvvm;
 
-namespace XMPPConnect.Desktop.Models
+namespace XMPPConnect.Desktop.ViewModels
 {
-    public class RosterList : BindableBase
+    public class RosterVModel : BindableBase
     {
         private readonly ObservableCollection<string> _contacts;
 
         public readonly ReadOnlyObservableCollection<string> UserContacts;
 
-        public RosterList()
+        public RosterVModel()
         {
             _contacts = new ObservableCollection<string>();
             UserContacts = new ReadOnlyObservableCollection<string>(_contacts);

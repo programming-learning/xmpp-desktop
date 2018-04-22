@@ -7,9 +7,9 @@ using FirstFloor.ModernUI.Presentation;
 using Prism.Mvvm;
 using XMPPConnect.Client;
 
-namespace XMPPConnect.Desktop.Models
+namespace XMPPConnect.Desktop.ViewModels
 {
-    public class Conversation : BindableBase
+    public class ConversationVModel : BindableBase
     {
         private string _chatField;
         private string _messageToSend;

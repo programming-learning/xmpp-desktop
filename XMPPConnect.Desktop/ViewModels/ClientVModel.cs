@@ -6,9 +6,9 @@ using System.Threading.Tasks;
 using Prism.Mvvm;
 using XMPPConnect;
 
-namespace XMPPConnect.Desktop.Models
+namespace XMPPConnect.Desktop.ViewModels
 {
-    public class Client : BindableBase
+    public class ClientVModel : BindableBase
     {
         private JabberID _jabberId;
 

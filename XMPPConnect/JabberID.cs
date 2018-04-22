@@ -14,11 +14,10 @@ namespace XMPPConnect
         private string _user;
         private string _server;
         private string _nonce;
-        private string _validatePattern;
+        private const string _validatePattern = "@";
 
         public JabberID(string jid)
         {
-            _validatePattern = "@";
             Init(jid);
         }
 
@@ -47,15 +46,15 @@ namespace XMPPConnect
             }
         }
 
-        private bool ValidateJid(string jid)
+        public static bool ValidateJid(string jid)
         {
             int amount = new Regex(_validatePattern).Matches(jid).Count;
-            if (amount > 1)
+            if (amount == 1)
             {
-                return false;
+                return true;
             }
 
-            return true;
+            return false;
         }
 
         public override string ToString()

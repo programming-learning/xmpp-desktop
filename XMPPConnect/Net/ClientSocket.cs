@@ -127,7 +127,7 @@ namespace XMPPConnect.Net
 
         public void Receive()
         {
-            _networkStream.Read(_readBuffer, 0, BUFFER_SIZE);          
+            _networkStream.Read(_readBuffer, 0, BUFFER_SIZE);
             InvokeOnReceive(_readBuffer, _readBuffer.Length);
         }
 
@@ -168,7 +168,7 @@ namespace XMPPConnect.Net
 
         private void EndConnect(IAsyncResult ar)
         {
-            if(!_connectTimedOut)
+            if (!_connectTimedOut)
             {
                 try
                 {
@@ -202,7 +202,7 @@ namespace XMPPConnect.Net
                             lock (this)
                             {
                                 _networkStream.BeginRead(_readBuffer, 0, BUFFER_SIZE, BeginReceive, null);
-                            }                           
+                            }
                         }
                     }
                     //else
@@ -242,9 +242,9 @@ namespace XMPPConnect.Net
                     {
                         result = _networkStream.BeginWrite(buffer, 0, buffer.Length, EndSend, null);
                     }
-                    
+
                     InvokeOnSend(data, data.Length);
-                }             
+                }
             }
             catch (Exception ex)
             {

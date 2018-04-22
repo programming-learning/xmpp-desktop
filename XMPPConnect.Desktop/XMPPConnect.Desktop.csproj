@@ -75,12 +75,17 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
-    <Compile Include="Models\Client.cs" />
-    <Compile Include="Models\ConnectionState.cs" />
-    <Compile Include="Models\Conversation.cs" />
-    <Compile Include="Models\RosterList.cs" />
-    <Compile Include="Models\LoginForm.cs" />
-    <Compile Include="ViewModels\MainWindowViewModel.cs" />
+    <Compile Include="Infrastructure\Commands\AuthorizeClientCommand.cs" />
+    <Compile Include="Infrastructure\Commands\SendMessageCommand.cs" />
+    <Compile Include="Infrastructure\RequestParams\AuthorizeClientRequestParams.cs" />
+    <Compile Include="Infrastructure\RequestParams\SendMessageRequestParams.cs" />
+    <Compile Include="ViewModels\ClientVModel.cs" />
+    <Compile Include="ViewModels\ConnectionStateVModel.cs" />
+    <Compile Include="ViewModels\ConnectionVModel.cs" />
+    <Compile Include="ViewModels\ConversationVModel.cs" />
+    <Compile Include="ViewModels\RosterVModel.cs" />
+    <Compile Include="ViewModels\AuthorizationVModel.cs" />
+    <Compile Include="ViewModels\XmppClientVModel.cs" />
     <Page Include="Views\AuthorizationWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
@@ -132,7 +137,8 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="Infrastructure\Commands\" />
+    <Folder Include="Infrastructure\DataRequests\" />
+    <Folder Include="Models\" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\XMPPConnect\XMPPConnect.csproj">

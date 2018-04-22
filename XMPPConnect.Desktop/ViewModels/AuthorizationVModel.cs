@@ -4,12 +4,14 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace XMPPConnect.Desktop.Models
+namespace XMPPConnect.Desktop.ViewModels
 {
-    public class LoginForm
+    public class AuthorizationVModel
     {
         public string Jid { get; set; }
 
         public string Password { get; set; }
+
+        //public ConnectionVM ConnectionVM { get; set; }
     }
 }

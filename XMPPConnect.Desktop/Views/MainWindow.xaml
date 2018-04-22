@@ -1,4 +1,4 @@
-﻿<Window x:Name="mainWindow" x:Class="XMPPConnect.Desktop.Views.MainWindow"
+﻿<Window x:Class="XMPPConnect.Desktop.Views.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
@@ -17,7 +17,7 @@
         TextOptions.TextRenderingMode="Auto"
         Background="AliceBlue">
     <Window.DataContext>
-        <viewModels:MainWindowViewModel></viewModels:MainWindowViewModel>
+        <viewModels:XmppClientVModel></viewModels:XmppClientVModel>
     </Window.DataContext>
     <Grid>
         <Grid.RowDefinitions>
@@ -33,7 +33,7 @@
             <StackPanel DockPanel.Dock="Top" Orientation="Horizontal">
                 <TextBox x:Name="User" Width="180" Margin="10"/>
                 <Button Background="LightBlue" BorderBrush="LightSkyBlue"
-                        IsEnabled="{Binding ConnectionState.Connected, Mode=OneWay}"
+                        IsEnabled="{Binding ConnectionStateVModel.Connected, Mode=OneWay}"
                         Padding="5" Content="Добавить контакт" Command="{Binding AddContactCommand}"
                         CommandParameter="{Binding ElementName=User, Path=Text}"/>
             </StackPanel>
@@ -44,13 +44,13 @@
 
             <Button Background="LightBlue" BorderBrush="LightSkyBlue"
                     DockPanel.Dock="Right"
-                    IsEnabled="{Binding ConnectionState.Connected}"
+                    IsEnabled="{Binding ConnectionStateVModel.Connected}"
                     VerticalAlignment="Top" Content="Удалить"
                     Width="100"
                     Margin="10"
                     Command="{Binding RemoveContactCommand}"
                     CommandParameter="{Binding ElementName=ContactsBox, Path=SelectedIndex}"/>
-            <ListBox x:Name="ContactsBox" Margin="5" ItemsSource="{Binding Contacts}" SelectedItem="{Binding CurrentConversation.PartnerJid, Mode=OneWayToSource}"/>
+            <ListBox x:Name="ContactsBox" Margin="5" ItemsSource="{Binding Contacts}" SelectedItem="{Binding CurrentConversationVModel.PartnerJid, Mode=OneWayToSource}"/>
         </DockPanel>
 
         <Rectangle Grid.Column="1" Fill="LightBlue" Margin="0,5,0,5"></Rectangle>
@@ -61,27 +61,28 @@
                 <TextBlock Margin="5,15,5,5" Text="{Binding CurrentClient.JabberId.Username, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}"/>
                 <Button Background="LightBlue" BorderBrush="LightSkyBlue" Margin="50,5,5,5" Padding="5" Content="Авторизация" 
                         Command="{Binding OpenAuthorizationWindowCommand}"
-                        CommandParameter="{Binding ElementName=mainWindow}"></Button>
+                        CommandParameter="{Binding Path=AuthorizationVModel}"></Button>
             </StackPanel>
             <!--<ComboBox DockPanel.Dock="Left" Width="27" Margin="0,5,5,5"/>-->
             <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal">
                 <TextBox VerticalScrollBarVisibility="Visible" AcceptsReturn="True" Margin="10" TextWrapping="Wrap" ToolTip="Введите сообщение"
-                         Text="{Binding CurrentConversation.MessageToSend, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                         Text="{Binding CurrentConversationVModel.MessageToSend, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                          Width="400" MinHeight="50" Name="InputField"
-                         IsEnabled = "{Binding ConnectionState.Connected}">
+                         IsEnabled = "{Binding ConnectionStateVModel.Connected}">
                     <TextBox.InputBindings>
                         <KeyBinding Gesture="Enter"
-                                    Command="{Binding SendMessageCommand}"
-                                    CommandParameter="{Binding ElementName=ContactsBox, Path=SelectedIndex}"/>
+                                    Command="{Binding SendMessageCommand}"/>
                     </TextBox.InputBindings>
                 </TextBox>
                 <!--<TextBox Text="{Binding PartnerJid, Mode=OneWayToSource, UpdateSourceTrigger=LostFocus}" Name="partnerJid" Margin="5" Height="20" Width="60" HorizontalAlignment="Stretch"></TextBox>-->
             </StackPanel>
             <TextBox Foreground="Black" AcceptsReturn="True" TextChanged="ChatField_OnTextChanged"
-                     Text="{Binding CurrentConversation.ChatField, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                     Text="{Binding CurrentConversationVModel.ChatField, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                      TextWrapping="Wrap" Name="ChatField" Margin="10" IsReadOnly="True"
                      Background="LightCyan"></TextBox>
         </DockPanel>
     </Grid>
 </Window>
+
+
 

@@ -7,21 +7,21 @@
         xmlns:viewModels="clr-namespace:XMPPConnect.Desktop.ViewModels"
         mc:Ignorable="d"
         Title="AuthorizationWindow" Height="215.121" Width="224.512">
-    <Window.DataContext>
-        <viewModels:MainWindowViewModel></viewModels:MainWindowViewModel>
-    </Window.DataContext>
+    <!--<Window.DataContext>
+        <models:LoginForm></models:LoginForm>
+    </Window.DataContext>-->
     <StackPanel Margin="5" Orientation="Vertical">
         <StackPanel Margin="5" Orientation="Horizontal">
             <Label Padding="15" HorizontalAlignment="Left">JabberId:</Label>
-            <TextBox Padding="5" HorizontalAlignment="Stretch" Width="120" Text="{Binding LoginForm.Jid, Mode=OneWayToSource}"></TextBox>
+            <TextBox Padding="5" HorizontalAlignment="Stretch" Width="120" Text="{Binding AuthorizationForm.Jid, Mode=OneWayToSource}"></TextBox>
         </StackPanel>
         <StackPanel Margin="5" Orientation="Horizontal">
             <Label Padding="15" HorizontalAlignment="Left">Пароль:</Label>
             <!--<PasswordBox Padding="5" HorizontalAlignment="Stretch" Width="120" Password="{Binding CurrentClient.Password, Mode=OneWayToSource}"></PasswordBox>-->
-            <TextBox Padding="5" HorizontalAlignment="Stretch" Width="120" Text="{Binding LoginForm.Password, Mode=OneWayToSource}"></TextBox>
+            <TextBox Padding="5" HorizontalAlignment="Stretch" Width="120" Text="{Binding AuthorizationForm.Password, Mode=OneWayToSource}"></TextBox>
         </StackPanel>
 
-        <Button Margin="10" HorizontalAlignment="Center" Padding="5" Command="{Binding LoginCommand}">Логин</Button>
+        <Button Margin="10" HorizontalAlignment="Center" Padding="5" Command="{Binding AuthorizeCommand}">Логин</Button>
     </StackPanel>
 </Window>
 

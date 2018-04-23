@@ -1,4 +1,5 @@
 ﻿<Window x:Class="XMPPConnect.Desktop.Views.MainWindow"
+        Closed="MainWindow_OnClosed"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
@@ -39,7 +40,8 @@
             </StackPanel>
             <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal">
                 <Label Margin="5">Текущий собеседник:</Label>
-                <TextBlock x:Name="PartnerJid" TextWrapping="Wrap" Margin="2" Padding="8" Text="{Binding ElementName=ContactsBox, Path=SelectedItem}"></TextBlock>
+                <TextBlock x:Name="PartnerJid" TextWrapping="Wrap" Margin="2" Padding="8"
+                           Text="{Binding CurrentPartner.JabberId.Username}"></TextBlock>
             </StackPanel>
 
             <Button Background="LightBlue" BorderBrush="LightSkyBlue"
@@ -50,7 +52,13 @@
                     Margin="10"
                     Command="{Binding RemoveContactCommand}"
                     CommandParameter="{Binding ElementName=ContactsBox, Path=SelectedIndex}"/>
-            <ListBox x:Name="ContactsBox" Margin="5" ItemsSource="{Binding Contacts}" SelectedItem="{Binding CurrentConversationVModel.PartnerJid, Mode=OneWayToSource}"/>
+            <ListBox x:Name="ContactsBox" Margin="5" ItemsSource="{Binding Contacts}" SelectedItem="{Binding CurrentPartner, Mode=OneWayToSource}">
+                <ListBox.ItemTemplate>
+                    <DataTemplate>
+                        <TextBlock Text="{Binding Path=JabberId.Full}" HorizontalAlignment="Center" />
+                    </DataTemplate>
+                </ListBox.ItemTemplate>
+            </ListBox>
         </DockPanel>
 
         <Rectangle Grid.Column="1" Fill="LightBlue" Margin="0,5,0,5"></Rectangle>
@@ -66,18 +74,19 @@
             <!--<ComboBox DockPanel.Dock="Left" Width="27" Margin="0,5,5,5"/>-->
             <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal">
                 <TextBox VerticalScrollBarVisibility="Visible" AcceptsReturn="True" Margin="10" TextWrapping="Wrap" ToolTip="Введите сообщение"
-                         Text="{Binding CurrentConversationVModel.MessageToSend, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                         Text="{Binding CurrentPartner.Conversation.MessageToSend, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                          Width="400" MinHeight="50" Name="InputField"
                          IsEnabled = "{Binding ConnectionStateVModel.Connected}">
                     <TextBox.InputBindings>
                         <KeyBinding Gesture="Enter"
-                                    Command="{Binding SendMessageCommand}"/>
+                                    Command="{Binding SendMessageCommand}"
+                                    CommandParameter="{Binding ElementName=ContactsBox, Path=SelectedItem}"/>
                     </TextBox.InputBindings>
                 </TextBox>
                 <!--<TextBox Text="{Binding PartnerJid, Mode=OneWayToSource, UpdateSourceTrigger=LostFocus}" Name="partnerJid" Margin="5" Height="20" Width="60" HorizontalAlignment="Stretch"></TextBox>-->
             </StackPanel>
             <TextBox Foreground="Black" AcceptsReturn="True" TextChanged="ChatField_OnTextChanged"
-                     Text="{Binding CurrentConversationVModel.ChatField, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                     Text="{Binding CurrentPartner.Conversation.ChatField, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                      TextWrapping="Wrap" Name="ChatField" Margin="10" IsReadOnly="True"
                      Background="LightCyan"></TextBox>
         </DockPanel>

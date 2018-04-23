@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -11,21 +12,24 @@ namespace XMPPConnect.Desktop.Infrastructure.RequestParams
     public class AuthorizeClientRequestParams
     {
         private XmppClientConnection _connection;
+        private ReadOnlyObservableCollection<RosterContactVModel> _contacts;
         private AuthorizationVModel _authorizationVModel;
         private ClientVModel _clientVModel;
-        private ConversationVModel _conversationVModel;
+        //private ConversationVModel _conversationVModel;
         private ConnectionStateVModel _connectionStateVModel;
         private SendMessageCommand _sendMessageCommand;
 
-        public AuthorizeClientRequestParams(XmppClientConnection connection, SendMessageCommand sendMessageCommand, AuthorizationVModel authorizationVModel,
-            ClientVModel clientVModel, ConversationVModel conversationVModel, ConnectionStateVModel connectionStateVModel)
+        public AuthorizeClientRequestParams(XmppClientConnection connection, ReadOnlyObservableCollection<RosterContactVModel> contacts,
+            SendMessageCommand sendMessageCommand, AuthorizationVModel authorizationVModel,
+            ClientVModel clientVModel, /*ConversationVModel conversationVModel,*/ ConnectionStateVModel connectionStateVModel)
         {
             _connection = connection;
             _sendMessageCommand = sendMessageCommand;
             _authorizationVModel = authorizationVModel;
             _clientVModel = clientVModel;
-            _conversationVModel = conversationVModel;
+            //_conversationVModel = conversationVModel;
             _connectionStateVModel = connectionStateVModel;
+            _contacts = contacts;
         }
 
         public XmppClientConnection Connection
@@ -46,16 +50,22 @@ namespace XMPPConnect.Desktop.Infrastructure.RequestParams
             set { _clientVModel = value; }
         }
 
-        public ConversationVModel Conversation
-        {
-            get { return _conversationVModel; }
-            set { _conversationVModel = value; }
-        }
+        //public ConversationVModel Conversation
+        //{
+        //    get { return _conversationVModel; }
+        //    set { _conversationVModel = value; }
+        //}
 
         public ConnectionStateVModel ConnectionState
         {
             get { return _connectionStateVModel; }
             set { _connectionStateVModel = value; }
+        }
+
+        public ReadOnlyObservableCollection<RosterContactVModel> Contacts
+        {
+            get { return _contacts; }
+            set { _contacts = value; }
         }
 
         public SendMessageCommand SendMessageCommand

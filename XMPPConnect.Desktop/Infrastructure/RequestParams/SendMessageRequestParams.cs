@@ -11,13 +11,11 @@ namespace XMPPConnect.Desktop.Infrastructure.RequestParams
     {
         private XmppClientConnection _connection;
         private ClientVModel _clientVModel;
-        private ConversationVModel _conversationVModel;
 
-        public SendMessageRequestParams(XmppClientConnection connection,ClientVModel clientVModel, ConversationVModel conversationVModel)
+        public SendMessageRequestParams(XmppClientConnection connection,ClientVModel clientVModel)
         {
             _connection = connection;
             _clientVModel = clientVModel;
-            _conversationVModel = conversationVModel;
         }
 
         public XmppClientConnection Connection
@@ -30,12 +28,6 @@ namespace XMPPConnect.Desktop.Infrastructure.RequestParams
         {
             get { return _clientVModel; }
             set { _clientVModel = value; }
-        }
-
-        public ConversationVModel Conversation
-        {
-            get { return _conversationVModel; }
-            set { _conversationVModel = value; }
         }
     }
 }

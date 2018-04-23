@@ -28,9 +28,9 @@ namespace XMPPConnect.Desktop.Infrastructure.Commands
 
         public bool CanExecute(object parameter)
         {
-            Contract.Requires(_requestParams != null);
+            Contract.Requires(_requestParams != null && parameter != null);
 
-            if (string.IsNullOrEmpty(_requestParams.Conversation.PartnerJid))
+            if ((parameter as RosterContactVModel) == null)
             {
                 return false;
             }
@@ -52,19 +52,20 @@ namespace XMPPConnect.Desktop.Infrastructure.Commands
 
         public void Execute(object parameter)
         {
-            Contract.Requires(_requestParams != null);
-            Execute(_requestParams);
+            Contract.Requires(_requestParams != null && parameter != null);
+            RosterContactVModel contact = (RosterContactVModel)parameter;
+            Execute(contact, _requestParams);
         }
 
-        public void Execute(SendMessageRequestParams requestParams)
-        {          
+        public void Execute(RosterContactVModel contact, SendMessageRequestParams requestParams)
+        {
             XmppClientConnection connection = requestParams.Connection;
             ClientVModel client = requestParams.Client;
-            ConversationVModel conversation = requestParams.Conversation;
+            ConversationVModel conversation = contact.Conversation;
 
             Message message = new Message(
                 client.JabberId,
-                new JabberID(conversation.PartnerJid),
+                contact.JabberId,
                 conversation.MessageToSend);
             conversation.ChatField += "[" + DateTime.Now.ToLongTimeString() + "]" + "<" + client.JabberId.Username + "> "
                                       + conversation.MessageToSend + Environment.NewLine;

@@ -83,6 +83,7 @@
     <Compile Include="ViewModels\ConnectionStateVModel.cs" />
     <Compile Include="ViewModels\ConnectionVModel.cs" />
     <Compile Include="ViewModels\ConversationVModel.cs" />
+    <Compile Include="ViewModels\RosterContactVModel.cs" />
     <Compile Include="ViewModels\RosterVModel.cs" />
     <Compile Include="ViewModels\AuthorizationVModel.cs" />
     <Compile Include="ViewModels\XmppClientVModel.cs" />

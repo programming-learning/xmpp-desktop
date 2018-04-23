@@ -31,5 +31,13 @@ namespace XMPPConnect.Desktop.Views
         {
             (sender as TextBox).ScrollToEnd();
         }
+
+        private void MainWindow_OnClosed(object sender, EventArgs e)
+        {
+            foreach (Window window in App.Current.Windows)
+            {
+                window.Close();
+            }
+        }
     }
 }

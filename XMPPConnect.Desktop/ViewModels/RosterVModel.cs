@@ -10,20 +10,24 @@ namespace XMPPConnect.Desktop.ViewModels
 {
     public class RosterVModel : BindableBase
     {
-        private readonly ObservableCollection<string> _contacts;
+        private readonly ObservableCollection<RosterContactVModel> _contacts;
 
-        public readonly ReadOnlyObservableCollection<string> UserContacts;
+        public readonly ReadOnlyObservableCollection<RosterContactVModel> UserContacts;
 
         public RosterVModel()
         {
-            _contacts = new ObservableCollection<string>();
-            UserContacts = new ReadOnlyObservableCollection<string>(_contacts);
+            _contacts = new ObservableCollection<RosterContactVModel>();
+            UserContacts = new ReadOnlyObservableCollection<RosterContactVModel>(_contacts);
         }
 
         public void AddContact(string jid)
         {
-            _contacts.Add(jid);
-            //RaisePropertyChanged("UserContacts");
+            RosterContactVModel contact = new RosterContactVModel
+            {
+                JabberId = new JabberID(jid),
+                Conversation = new ConversationVModel()
+            };
+            _contacts.Add(contact);
         }
 
         public void RemoveContact(int index)
@@ -31,9 +35,7 @@ namespace XMPPConnect.Desktop.ViewModels
             if (index >= 0 && index < _contacts.Count)
             {
                 _contacts.RemoveAt(index);
-                //RaisePropertyChanged("UserContacts");
             }
-            //RaisePropertyChanged("Sum");
         }
     }
 }

@@ -22,7 +22,7 @@ namespace XMPPConnect.Managers
         public Stanza GetStanzaObject(string xmlString)
         {
             Stanza result = new None();
-            if (xmlString.Contains("message"))
+            if (xmlString.Contains("message") && !xmlString.Contains("presence"))
             {
                 result = new Message(xmlString);
             }

@@ -82,6 +82,16 @@ namespace XMPPConnect.Desktop.ViewModels
         public MessageGrabber MessageGrabber
         {
             get { return _messageGrabber; }
+            set { _messageGrabber = value; }
+        }
+
+        public void InitMessageGrabber(XmppClientConnection connection, JabberID jid)
+        {
+            _connection = connection;
+            _messageGrabber = new MessageGrabber(_connection);
+            _messageGrabber.Add(jid, OnMessage);
+            //contact.Conversation.MessageGrabber = new MessageGrabber(connection)
+            //    .Add(new JabberID(PartnerJid), OnMessage);
         }
 
         private void OnMessage(object sender, Message msg)

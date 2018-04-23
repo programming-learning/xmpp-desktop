@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Diagnostics.Contracts;
 using System.Linq;
 using System.Text;
@@ -63,9 +64,10 @@ namespace XMPPConnect.Desktop.Infrastructure.Commands
 
             XmppClientConnection connection = requestParams.Connection;
             ClientVModel client = requestParams.Client;
-            ConversationVModel conversation = requestParams.Conversation;
+            //ConversationVModel conversation = requestParams.Conversation;
             ConnectionStateVModel connectionState = requestParams.ConnectionState;
             AuthorizationVModel credentials = requestParams.AuthorizeCredentials;
+            ReadOnlyObservableCollection<RosterContactVModel> contacts = requestParams.Contacts;
 
             JabberID id = new JabberID(credentials.Jid);
             connection = new XmppClientConnection(id, credentials.Password);
@@ -77,7 +79,16 @@ namespace XMPPConnect.Desktop.Infrastructure.Commands
                 client.JabberId = id;
                 client.Password = credentials.Password;
                 connectionState.Connected = true;
-                conversation.Connection = connection;
+                
+                //TODO: Всем контактам передать ссылку на текущее соединение
+                //conversation.Connection = connection;
+                foreach (var contact in contacts)
+                {
+                    contact.Conversation.InitMessageGrabber(connection, contact.JabberId);
+                    //contact.Conversation.Connection = connection;
+                    //contact.Conversation.MessageGrabber = new MessageGrabber(connection)
+                    //    .Add(new JabberID(PartnerJid), OnMessage);
+                }
             }
             else
             {
@@ -86,7 +97,7 @@ namespace XMPPConnect.Desktop.Infrastructure.Commands
             }
 
             SendMessageCommand sendMessageCommand = _requestParams.SendMessageCommand;
-            SendMessageRequestParams parameters = new SendMessageRequestParams(connection, client, conversation);
+            SendMessageRequestParams parameters = new SendMessageRequestParams(connection, client);
             sendMessageCommand.ExecuteParams = parameters;
 
             connection.Send(new Presence(ShowType.Show));
